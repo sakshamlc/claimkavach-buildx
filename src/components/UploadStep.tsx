@@ -3,8 +3,8 @@
 import { useRef, useState, type DragEvent, type ChangeEvent } from 'react';
 import { VerdictIcon } from '@/components/Icons';
 import { PrivacyDisclaimer } from '@/components/PrivacyDisclaimer';
+import { formatINR } from '@/lib/currency';
 import { SYNTHETIC_DEMO_SCENARIOS } from '@/lib/demo/synthetic-bills';
-import type { VerdictTier } from '@/lib/design-tokens';
 import {
   ClientPrepError,
   prepareBillUpload,
@@ -181,32 +181,55 @@ export function UploadStep({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
           {SYNTHETIC_DEMO_SCENARIOS.map((scenario) => {
-            const iconColorClass: Record<VerdictTier, string> = {
-              CONFIRMED: 'text-verdict-confirmed',
-              LIKELY: 'text-verdict-likely',
-              NEEDS_REVIEW: 'text-verdict-needs-review',
-              VALID_EXCLUSION: 'text-verdict-valid',
-              NOT_CHECKED: 'text-verdict-not-checked',
+            const accentByScenario: Record<
+              typeof scenario.id,
+              { borderLeft: string; iconText: string }
+            > = {
+              'stent-duplicate-lumpsum': {
+                borderLeft: 'border-l-verdict-confirmed',
+                iconText: 'text-verdict-confirmed',
+              },
+              'tpa-deduction-review': {
+                borderLeft: 'border-l-verdict-likely',
+                iconText: 'text-verdict-likely',
+              },
+              'clean-accurate-bill': {
+                borderLeft: 'border-l-verdict-valid',
+                iconText: 'text-verdict-valid',
+              },
             };
+            const accent = accentByScenario[scenario.id];
+            const previewStrip =
+              scenario.id === 'tpa-deduction-review'
+                ? `${formatINR(scenario.bill.statedTotalPaise)} • ${scenario.bill.tpaDeductions.length} ${t('demoPreviewTpa')}`
+                : scenario.id === 'clean-accurate-bill'
+                  ? `${formatINR(scenario.bill.statedTotalPaise)} • ${t('demoPreviewCleanDiff')}`
+                  : `${formatINR(scenario.bill.statedTotalPaise)} • ${scenario.bill.lineItems.length} ${t('demoPreviewLines')}`;
+
             return (
               <div
                 key={scenario.id}
-                className="flex flex-col justify-between gap-3 p-4 sm:p-5 rounded-xl bg-subtle-panel border border-border shadow-xs"
+                className={`flex flex-col justify-between gap-3 p-4 sm:p-5 rounded-xl bg-subtle-panel border border-border border-l-4 ${accent.borderLeft} shadow-xs`}
               >
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={iconColorClass[scenario.tierHint]}>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={accent.iconText}>
                       <VerdictIcon tier={scenario.tierHint} className="w-5 h-5" />
                     </span>
-                    <span className="inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-soft-teal-tint text-action-teal rounded">
+                    <span className="inline-block px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-card-bg border border-border text-text-muted rounded">
                       {t('syntheticBadge')}
                     </span>
                   </div>
-                  <p className="text-sm font-semibold text-text-primary mb-1">
-                    {t(scenario.titleKey)}
-                  </p>
-                  <p className="text-xs text-text-secondary leading-relaxed">
-                    {t(scenario.descriptionKey)}
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary mb-1">
+                      {t(scenario.titleKey)}
+                    </p>
+                    <p className="text-xs text-text-secondary leading-relaxed">
+                      {t(scenario.descriptionKey)}
+                    </p>
+                  </div>
+                  <p className="text-xs font-mono tabular-nums text-text-muted bg-card-bg/80 border border-border rounded-lg px-2.5 py-1.5">
+                    {previewStrip}
                   </p>
                 </div>
 

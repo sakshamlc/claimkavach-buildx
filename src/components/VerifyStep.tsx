@@ -428,7 +428,7 @@ export function VerifyStep({
             <tr className="border-b border-border bg-subtle-panel text-xs font-semibold text-text-secondary">
               <th className="p-3 min-w-[260px]">{t('verifyFieldDescription')}</th>
               <th className="p-3 min-w-[140px]">{t('verifyFieldCategory')}</th>
-              <th className="p-3 min-w-[68px] w-[72px] text-center">{t('verifyFieldQty')}</th>
+              <th className="p-3 min-w-[72px] w-[72px] text-center">{t('verifyFieldQty')}</th>
               <th className="p-3 min-w-[120px]">{t('verifyFieldUnitPrice')}</th>
               <th className="p-3 min-w-[120px]">{t('verifyFieldLineTotal')}</th>
               <th className="p-3 min-w-[120px]">{t('verifyFieldDateShort')}</th>
@@ -472,7 +472,7 @@ export function VerifyStep({
                     ))}
                   </select>
                 </td>
-                <td className="p-2.5 min-w-[68px] w-[72px]">
+                <td className="p-2.5 min-w-[72px] w-[72px]">
                   <input
                     type="number"
                     min="0.01"

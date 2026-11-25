@@ -43,6 +43,7 @@ const hi = {
   uploadConsentRequired: 'फ़ाइल अपलोड करने के लिए कृपया ऊपर दिए गए गोपनीयता सहमति बॉक्स पर टिक करें।',
   uploadProgressCompressing: 'बिल के पृष्ठ तैयार और संपीड़ित किए जा रहे हैं...',
   uploadProgressBatch: 'बैच पढ़ा जा रहा है',
+  uploadFriendlyWait: 'आपके बिल के पृष्ठों को ध्यान से पढ़ा जा रहा है। इसमें आमतौर पर कुछ ही सेकंड लगते हैं।',
   loadDemoButton: 'डेमो बिल लोड करें',
 
   // Verify
@@ -61,6 +62,8 @@ const hi = {
   verifyReconciledBadge: 'मिलान सही',
   verifyMismatchBadge: 'अंतर मिला',
   verifyDifferenceLabel: 'अंतर',
+  reconcileHelperMatch: 'सब कुछ मिलान हो गया — निकाली गई सभी लाइनें बिल के कुल योग से मेल खाती हैं।',
+  reconcileHelperMismatch: 'लाइनों का योग बिल में बताए गए कुल से अलग है। ऑडिट चलाने से पहले किसी छूटे पृष्ठ, छूट, टैक्स या टाइपिंग की गलती की जाँच करें।',
   verifyConfirmToggle: 'मैंने यह जाँचा',
   verifyRunAudit: 'नियम-आधारित ऑडिट चलाएँ',
   verifyBackToUpload: 'अपलोड पर वापस जाएँ',
@@ -72,6 +75,8 @@ const hi = {
   verifyFieldUnitPrice: 'इकाई मूल्य (₹)',
   verifyFieldLineTotal: 'लाइन कुल (₹)',
   verifyFieldDate: 'दिनांक (YYYY-MM-DD)',
+  verifyFieldDateShort: 'दिनांक',
+  verifyFieldCheckedShort: 'जाँचा',
   verifyTpaSectionTitle: 'TPA / बीमाकर्ता कटौती',
   verifyTpaClaimed: 'दावा राशि (₹)',
   verifyTpaDeducted: 'काटी गई राशि (₹)',
@@ -106,7 +111,7 @@ const hi = {
   reportReferenceAmount: 'संदर्भ / अपेक्षित राशि',
   reportDeltaAmount: 'अंतर',
   reportRecommendedAction: 'सुझाया गया अगला कदम',
-  reportNoItemsInTier: 'इस श्रेणी में कोई आइटम नहीं है।',
+  reportNoItemsInTier: 'यहाँ कोई समस्या नहीं मिली — इस श्रेणी में कोई आइटम नहीं है।',
   reportUnverifiedBadge: 'असत्यापित डेटा',
   reportVerifiedBadge: 'सत्यापित डेटा',
   reportTransparencyNote: 'प्रत्येक श्रेणी को अलग-अलग दिखाया गया है ताकि पुष्ट समस्याएँ, संभावित संकेत, समीक्षा योग्य आइटम और बिना जाँचे आइटम एक साथ न मिलाए जाएँ।',
@@ -181,6 +186,7 @@ const hi = {
 
   // Misc
   of: 'में से',
+  itemSingular: 'आइटम',
   items: 'आइटम',
   close: 'बंद करें',
   back: 'वापस',

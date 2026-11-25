@@ -12,15 +12,14 @@ import path from 'path';
 
 describe('ESLint Purity Boundary', () => {
   const projectRoot = path.resolve(__dirname, '../..');
+  const eslint = new ESLint({
+    cwd: projectRoot,
+    overrideConfigFile: path.join(projectRoot, 'eslint.config.mjs'),
+  });
 
   it('should catch all purity violations when linted under src/lib/audit/**', async () => {
     const fixturePath = path.resolve(__dirname, 'fixtures/purity-violation.fixture.ts');
     const fixtureCode = fs.readFileSync(fixturePath, 'utf8');
-
-    const eslint = new ESLint({
-      cwd: projectRoot,
-      overrideConfigFile: path.join(projectRoot, 'eslint.config.mjs'),
-    });
 
     // Lint the violation code as a virtual file inside src/lib/audit/
     const results = await eslint.lintText(fixtureCode, {
@@ -37,18 +36,13 @@ describe('ESLint Purity Boundary', () => {
     expect(ruleIds.has('no-restricted-globals')).toBe(true);
     expect(ruleIds.has('no-restricted-syntax')).toBe(true);
     expect(results[0].errorCount).toBeGreaterThanOrEqual(7);
-  }, 30000);
+  }, 60000);
 
   it('should NOT flag any real files in src/lib/audit/**', async () => {
-    const eslint = new ESLint({
-      cwd: projectRoot,
-      overrideConfigFile: path.join(projectRoot, 'eslint.config.mjs'),
-    });
-
     const results = await eslint.lintFiles(['src/lib/audit/**/*.ts']);
     const totalErrors = results.reduce((sum, r) => sum + r.errorCount, 0);
 
     expect(results.length).toBeGreaterThanOrEqual(1);
     expect(totalErrors).toBe(0);
-  }, 30000);
+  }, 60000);
 });

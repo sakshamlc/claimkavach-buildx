@@ -13,6 +13,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Disclaimer } from '@/components/Disclaimer';
+import { BrandShieldIcon } from '@/components/Icons';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ReportStep } from '@/components/ReportStep';
 import { Stepper } from '@/components/Stepper';
@@ -34,7 +35,13 @@ function ClaimKavachApp() {
 
   function scrollToTop() {
     if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const prefersReduced = window.matchMedia?.(
+        '(prefers-reduced-motion: reduce)',
+      ).matches;
+      window.scrollTo({
+        top: 0,
+        behavior: prefersReduced ? 'auto' : 'smooth',
+      });
     }
   }
 
@@ -55,6 +62,7 @@ function ClaimKavachApp() {
   }
 
   function handleBackToVerify() {
+    if (!bill) return;
     setStep(1);
     scrollToTop();
   }
@@ -72,69 +80,79 @@ function ClaimKavachApp() {
   }
 
   return (
-    <div className="min-h-screen bg-page-bg flex flex-col">
-      {/* Header */}
-      <header className="no-print bg-card-bg border-b border-border sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl sm:text-2xl" aria-hidden="true">
-              🛡️
+    <div className="min-h-screen bg-page-bg flex flex-col overflow-x-hidden">
+      {/* Anchored Deep Navy Header */}
+      <header className="no-print bg-primary-navy text-white border-b border-primary-navy sticky top-0 z-20 shadow-sm">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 text-soft-teal-tint flex-shrink-0">
+              <BrandShieldIcon className="w-5 h-5" />
             </span>
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-primary-navy">
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-bold text-white truncate">
                 {t('appName')}
               </h1>
-              <p className="text-xs text-text-muted hidden sm:block">
+              <p className="text-xs text-white/75 hidden sm:block">
                 {t('appTagline')}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href="/sources"
-              className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-text-secondary hover:text-action-teal hover:bg-subtle-panel transition-colors"
+              className="min-h-[44px] inline-flex items-center px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
             >
               {t('sourcesNavLink')}
             </Link>
-            <LanguageToggle />
+            <LanguageToggle variant="navy" />
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
-        <div className="mb-8">
+      <main
+        className={`flex-1 ${
+          step === 1 ? 'max-w-6xl' : 'max-w-5xl'
+        } mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full`}
+      >
+        <div className="mb-7 sm:mb-8">
           <Stepper
             currentStep={step}
             labels={[t('stepUpload'), t('stepVerify'), t('stepReport')]}
+            onStepSelect={(target) => {
+              if (target === 0) handleBackToUpload();
+              else if (target === 1 && bill) handleBackToVerify();
+            }}
           />
         </div>
 
-        {step === 0 && (
-          <UploadStep
-            consented={consented}
-            onConsentChange={setConsented}
-            onBillReady={handleBillReady}
-          />
-        )}
+        <div key={step} className="step-enter">
+          {step === 0 && (
+            <UploadStep
+              consented={consented}
+              onConsentChange={setConsented}
+              onBillReady={handleBillReady}
+            />
+          )}
 
-        {step === 1 && bill && (
-          <VerifyStep
-            bill={bill}
-            onBillChange={setBill}
-            onRunAudit={handleRunAudit}
-            onBack={handleBackToUpload}
-          />
-        )}
+          {step === 1 && bill && (
+            <VerifyStep
+              bill={bill}
+              onBillChange={setBill}
+              onRunAudit={handleRunAudit}
+              onBack={handleBackToUpload}
+            />
+          )}
 
-        {step === 2 && bill && report && (
-          <ReportStep
-            bill={bill}
-            report={report}
-            onBackToVerify={handleBackToVerify}
-            onStartOver={handleStartOver}
-          />
-        )}
+          {step === 2 && bill && report && (
+            <ReportStep
+              bill={bill}
+              report={report}
+              onBackToVerify={handleBackToVerify}
+              onStartOver={handleStartOver}
+            />
+          )}
+        </div>
       </main>
 
       {/* Footer */}

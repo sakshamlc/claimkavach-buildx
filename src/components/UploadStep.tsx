@@ -1,8 +1,10 @@
 'use client';
 
 import { useRef, useState, type DragEvent, type ChangeEvent } from 'react';
+import { VerdictIcon } from '@/components/Icons';
 import { PrivacyDisclaimer } from '@/components/PrivacyDisclaimer';
 import { SYNTHETIC_DEMO_SCENARIOS } from '@/lib/demo/synthetic-bills';
+import type { VerdictTier } from '@/lib/design-tokens';
 import {
   ClientPrepError,
   prepareBillUpload,
@@ -169,53 +171,62 @@ export function UploadStep({
       </section>
 
       {/* 1-Click Synthetic Demo Strip */}
-      <section className="bg-card-bg rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
-        <div className="text-center mb-4">
+      <section className="bg-card-bg rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+        <div className="text-center mb-5">
           <h3 className="text-lg font-bold text-primary-navy mb-1">
             {t('demoStripTitle')}
           </h3>
           <p className="text-sm text-text-muted">{t('demoStripSubtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {SYNTHETIC_DEMO_SCENARIOS.map((scenario) => (
-            <div
-              key={scenario.id}
-              className="flex flex-col justify-between gap-3 p-4 rounded-xl bg-subtle-panel border border-border"
-            >
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg" aria-hidden="true">
-                    {scenario.icon}
-                  </span>
-                  <span className="inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-soft-teal-tint text-action-teal rounded">
-                    {t('syntheticBadge')}
-                  </span>
-                </div>
-                <p className="text-sm font-semibold text-text-primary mb-1">
-                  {t(scenario.titleKey)}
-                </p>
-                <p className="text-xs text-text-secondary leading-relaxed">
-                  {t(scenario.descriptionKey)}
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleLoadDemo(scenario.bill)}
-                disabled={isProcessing}
-                className="
-                  w-full min-h-[44px] px-3 py-2 rounded-lg
-                  bg-card-bg hover:bg-soft-teal-tint
-                  border border-action-teal/40 text-action-teal
-                  text-sm font-semibold transition-colors cursor-pointer
-                  disabled:opacity-50 disabled:cursor-not-allowed
-                "
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {SYNTHETIC_DEMO_SCENARIOS.map((scenario) => {
+            const iconColorClass: Record<VerdictTier, string> = {
+              CONFIRMED: 'text-verdict-confirmed',
+              LIKELY: 'text-verdict-likely',
+              NEEDS_REVIEW: 'text-verdict-needs-review',
+              VALID_EXCLUSION: 'text-verdict-valid',
+              NOT_CHECKED: 'text-verdict-not-checked',
+            };
+            return (
+              <div
+                key={scenario.id}
+                className="flex flex-col justify-between gap-3 p-4 sm:p-5 rounded-xl bg-subtle-panel border border-border shadow-xs"
               >
-                {t('loadDemoButton')}
-              </button>
-            </div>
-          ))}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={iconColorClass[scenario.tierHint]}>
+                      <VerdictIcon tier={scenario.tierHint} className="w-5 h-5" />
+                    </span>
+                    <span className="inline-block px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider bg-soft-teal-tint text-action-teal rounded">
+                      {t('syntheticBadge')}
+                    </span>
+                  </div>
+                  <p className="text-sm font-semibold text-text-primary mb-1">
+                    {t(scenario.titleKey)}
+                  </p>
+                  <p className="text-xs text-text-secondary leading-relaxed">
+                    {t(scenario.descriptionKey)}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleLoadDemo(scenario.bill)}
+                  disabled={isProcessing}
+                  className="
+                    w-full min-h-[44px] px-3 py-2 rounded-lg
+                    bg-card-bg hover:bg-soft-teal-tint
+                    border border-action-teal/40 text-action-teal
+                    text-sm font-semibold transition-colors cursor-pointer
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                  "
+                >
+                  {t('loadDemoButton')}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -270,13 +281,18 @@ export function UploadStep({
           )}
 
           {statusMessage && (
-            <p
+            <div
               role="status"
               aria-live="polite"
-              className="text-sm font-medium text-action-teal mb-4"
+              className="mb-4 rounded-xl bg-soft-teal-tint border border-action-teal/20 p-3 text-center space-y-1"
             >
-              {statusMessage}
-            </p>
+              <p className="text-sm font-semibold text-action-teal">
+                {statusMessage}
+              </p>
+              <p className="text-xs text-text-secondary">
+                {t('uploadFriendlyWait')}
+              </p>
+            </div>
           )}
 
           <button

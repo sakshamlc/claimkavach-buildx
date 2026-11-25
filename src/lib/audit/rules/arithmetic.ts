@@ -1,4 +1,4 @@
-import { addPaise, multiplyPaise, subtractPaise } from '@/lib/currency';
+import { addPaise, formatINR, multiplyPaise, subtractPaise } from '@/lib/currency';
 import type { AuditFinding, NormalizedBill } from '@/lib/schemas/audit';
 
 export interface ArithmeticCheckOutput {
@@ -40,19 +40,19 @@ export function checkArithmetic(bill: NormalizedBill): ArithmeticCheckOutput {
         tier: 'CONFIRMED',
         lineItemId: item.id,
         titleKey: 'findingArithmeticLineMismatch',
-        summary: `Line total (${item.lineTotalPaise} paise) differs from ${item.quantity} × ${item.unitPricePaise} paise (${expected} paise) for "${item.rawDescription}".`,
+        summary: `Line total (${formatINR(item.lineTotalPaise)}) differs from ${item.quantity} × ${formatINR(item.unitPricePaise)} (${formatINR(expected)}) for "${item.rawDescription}".`,
         billedPaise: item.lineTotalPaise,
         referencePaise: expected,
         deltaPaise: diff,
         unverifiedData: false,
         evidence: {
           kind: 'arithmetic',
-          formula: `${item.quantity} × ${item.unitPricePaise} = ${expected} paise (billed ${item.lineTotalPaise} paise; difference ${diff} paise)`,
+          formula: `${item.quantity} × ${formatINR(item.unitPricePaise)} = ${formatINR(expected)} (billed ${formatINR(item.lineTotalPaise)}; difference ${formatINR(diff)})`,
           sourceTitle: null,
           instrumentNumber: null,
           instrumentDate: null,
           provenancePageRow: null,
-          details: `Exact arithmetic check on line item "${item.rawDescription}" shows a ${diff} paise discrepancy.`,
+          details: `Exact arithmetic check on "${item.rawDescription}" shows a ${formatINR(diff)} discrepancy.`,
         },
         recommendedAction:
           'Ask the billing desk to verify the quantity, unit rate, and line multiplication on this row.',
@@ -71,19 +71,19 @@ export function checkArithmetic(bill: NormalizedBill): ArithmeticCheckOutput {
       tier: 'CONFIRMED',
       lineItemId: null,
       titleKey: 'findingArithmeticBillSumMismatch',
-      summary: `Stated bill total (${bill.statedTotalPaise} paise) does not equal sum of extracted lines (${computedSumPaise} paise).`,
+      summary: `Stated bill total (${formatINR(bill.statedTotalPaise)}) does not equal sum of extracted lines (${formatINR(computedSumPaise)}).`,
       billedPaise: bill.statedTotalPaise,
       referencePaise: computedSumPaise,
       deltaPaise: differencePaise,
       unverifiedData: false,
       evidence: {
         kind: 'arithmetic',
-        formula: `Stated total ${bill.statedTotalPaise} - sum of lines ${computedSumPaise} = ${differencePaise} paise`,
+        formula: `Stated total ${formatINR(bill.statedTotalPaise)} − sum of lines ${formatINR(computedSumPaise)} = ${formatINR(differencePaise)}`,
         sourceTitle: null,
         instrumentNumber: null,
         instrumentDate: null,
         provenancePageRow: null,
-        details: `Sum of ${bill.lineItems.length} extracted line items is ${computedSumPaise} paise, compared against stated bill total of ${bill.statedTotalPaise} paise.`,
+        details: `Sum of ${bill.lineItems.length} extracted line items is ${formatINR(computedSumPaise)}, compared against stated bill total of ${formatINR(bill.statedTotalPaise)}.`,
       },
       recommendedAction:
         'Check whether any discount, tax, advance payment, or missing page accounts for the difference in the final bill total.',

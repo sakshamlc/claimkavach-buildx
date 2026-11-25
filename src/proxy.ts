@@ -1,14 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "worker-src 'self' blob:",
-  "connect-src 'self'",
-  "frame-ancestors 'none'",
-].join('; ');
+export function buildContentSecurityPolicy(isDev: boolean): string {
+  const scriptSrc = isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'";
+
+  return [
+    "default-src 'self'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "worker-src 'self' blob:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+  ].join('; ');
+}
 
 /**
  * Next.js 16 Proxy (replaces deprecated middleware.ts)
@@ -18,8 +24,9 @@ const CONTENT_SECURITY_POLICY = [
  */
 export function proxy(request: NextRequest): NextResponse {
   const response = NextResponse.next();
+  const isDev = process.env.NODE_ENV !== 'production';
 
-  response.headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
+  response.headers.set('Content-Security-Policy', buildContentSecurityPolicy(isDev));
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('X-Frame-Options', 'DENY');

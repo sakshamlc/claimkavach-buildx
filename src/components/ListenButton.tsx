@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { SpeakerIcon } from '@/components/Icons';
 import { useI18n } from '@/lib/i18n';
 import type { AuditReport } from '@/lib/schemas/audit';
 
@@ -143,7 +144,7 @@ export function ListenButton({ report }: ListenButtonProps) {
     <div className="no-print rounded-2xl border border-border bg-card-bg p-4 space-y-2.5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true">🔊</span>
+          <SpeakerIcon className="w-4 h-4 text-action-teal flex-shrink-0" />
           <span className="text-sm font-semibold text-primary-navy">
             {t('listenTitle')}
           </span>

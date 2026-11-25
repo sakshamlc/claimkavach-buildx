@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { VerdictIcon } from '@/components/Icons';
 import { addPaise, formatINR, rupeesToPaise, subtractPaise } from '@/lib/currency';
 import { isValidISODate } from '@/lib/dates';
 import { useI18n, type I18nKeys } from '@/lib/i18n';
@@ -75,8 +76,8 @@ function RupeeInput({
         }
       }}
       className="
-        w-full min-h-[44px] px-2.5 py-2 rounded-lg
-        bg-card-bg border border-border text-sm text-text-primary font-mono
+        w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40
+        bg-card-bg border border-border text-base md:text-sm text-text-primary font-mono tabular-nums
       "
     />
   );
@@ -148,12 +149,12 @@ export function VerifyStep({
       {bill.isSynthetic && (
         <div
           role="note"
-          className="rounded-xl border border-action-teal/30 bg-soft-teal-tint px-4 py-3 text-sm font-semibold text-action-teal flex items-center gap-2"
+          className="rounded-xl border border-action-teal/30 bg-soft-teal-tint px-4 py-3 text-sm font-semibold text-action-teal flex flex-wrap items-center gap-2"
         >
           <span className="px-2 py-0.5 rounded bg-action-teal text-white text-xs font-bold">
             {t('syntheticBadge')}
           </span>
-          <span>{t('syntheticDemoBanner')}</span>
+          <span className="break-words">{t('syntheticDemoBanner')}</span>
         </div>
       )}
 
@@ -161,22 +162,24 @@ export function VerifyStep({
         <h2 className="text-xl sm:text-2xl font-bold text-primary-navy">
           {t('verifyTitle')}
         </h2>
-        <p className="text-sm text-text-secondary mt-1">{t('verifySubtitle')}</p>
+        <p className="text-sm text-text-secondary mt-1 leading-relaxed">
+          {t('verifySubtitle')}
+        </p>
       </div>
 
       {/* Sticky Reconcile Bar */}
-      <div className="sticky top-[65px] z-10 rounded-2xl border border-border bg-card-bg p-4 shadow-sm">
+      <div className="sticky top-[64px] z-10 rounded-2xl border border-border bg-card-bg/95 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-4">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-6">
             <div>
               <p className="text-xs text-text-muted">{t('reconcileBillTotal')}</p>
-              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono">
+              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums">
                 {formatINR(bill.statedTotalPaise)}
               </p>
             </div>
             <div>
               <p className="text-xs text-text-muted">{t('reconcileExtractedSum')}</p>
-              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono">
+              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums">
                 {formatINR(computedSumPaise)}
               </p>
             </div>
@@ -186,7 +189,7 @@ export function VerifyStep({
             role="status"
             aria-live="polite"
             className={`
-              inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold
+              inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold tabular-nums
               ${
                 isReconciled
                   ? 'bg-verdict-valid-bg text-verdict-valid'
@@ -194,7 +197,10 @@ export function VerifyStep({
               }
             `}
           >
-            <span aria-hidden="true">{isReconciled ? '🟢' : '🟠'}</span>
+            <VerdictIcon
+              tier={isReconciled ? 'VALID_EXCLUSION' : 'LIKELY'}
+              className="w-4 h-4 flex-shrink-0"
+            />
             <span>
               {isReconciled
                 ? `${t('verifyReconciledBadge')} (${formatINR(0)})`
@@ -202,11 +208,17 @@ export function VerifyStep({
             </span>
           </div>
         </div>
+
+        <p className="text-xs text-text-secondary leading-relaxed">
+          {isReconciled
+            ? t('reconcileHelperMatch')
+            : t('reconcileHelperMismatch')}
+        </p>
       </div>
 
       {/* Bill Metadata */}
-      <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <label className="block space-y-1">
+      <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <label className="block space-y-1 sm:col-span-2 lg:col-span-2">
           <span className="text-xs font-medium text-text-secondary">
             {t('verifyHospitalLabel')}
           </span>
@@ -216,11 +228,11 @@ export function VerifyStep({
             onChange={(e) =>
               onBillChange({ ...bill, hospitalName: e.target.value })
             }
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg bg-card-bg border border-border text-sm text-text-primary"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary"
           />
         </label>
 
-        <label className="block space-y-1">
+        <label className="block space-y-1 sm:col-span-2 lg:col-span-2">
           <span className="text-xs font-medium text-text-secondary">
             {t('verifyPatientLabel')}
           </span>
@@ -230,7 +242,7 @@ export function VerifyStep({
             onChange={(e) =>
               onBillChange({ ...bill, patientName: e.target.value })
             }
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg bg-card-bg border border-border text-sm text-text-primary"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary"
           />
         </label>
 
@@ -248,7 +260,7 @@ export function VerifyStep({
               }
             }}
             placeholder="YYYY-MM-DD"
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg bg-card-bg border border-border text-sm text-text-primary font-mono"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary font-mono tabular-nums"
           />
         </label>
 
@@ -267,11 +279,11 @@ export function VerifyStep({
       </section>
 
       {/* Mobile Line Items (< 768px) */}
-      <section className="space-y-3 md:hidden">
+      <section className="space-y-4 md:hidden">
         {bill.lineItems.map((item) => (
           <div
             key={item.id}
-            className="rounded-2xl border border-border bg-card-bg p-4 space-y-3"
+            className="rounded-2xl border border-border bg-card-bg p-5 shadow-sm space-y-3.5"
           >
             <label className="block space-y-1">
               <span className="text-xs font-medium text-text-secondary">
@@ -286,32 +298,33 @@ export function VerifyStep({
                     normalizedName: e.target.value.trim() || item.normalizedName,
                   })
                 }
-                className="w-full min-h-[44px] px-3 py-2 rounded-lg border border-border text-sm"
+                className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 border border-border text-base"
               />
             </label>
 
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="text-xs font-medium text-text-secondary">
-                  {t('verifyFieldCategory')}
-                </span>
-                <select
-                  value={item.category}
-                  onChange={(e) =>
-                    updateLineItem(item.id, {
-                      category: e.target.value as LineCategory,
-                    })
-                  }
-                  className="w-full min-h-[44px] px-2 py-2 rounded-lg border border-border bg-card-bg text-sm"
-                >
-                  {LineCategorySchema.options.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {t(CATEGORY_LABEL_KEYS[cat])}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            <label className="block space-y-1">
+              <span className="text-xs font-medium text-text-secondary">
+                {t('verifyFieldCategory')}
+              </span>
+              <select
+                value={item.category}
+                onChange={(e) =>
+                  updateLineItem(item.id, {
+                    category: e.target.value as LineCategory,
+                  })
+                }
+                className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base"
+              >
+                {LineCategorySchema.options.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {t(CATEGORY_LABEL_KEYS[cat])}
+                  </option>
+                ))}
+              </select>
+            </label>
 
+            {/* 2-col numeric grid 1: Qty + Unit Price */}
+            <div className="grid grid-cols-2 gap-3">
               <label className="block space-y-1">
                 <span className="text-xs font-medium text-text-secondary">
                   {t('verifyFieldQty')}
@@ -327,12 +340,10 @@ export function VerifyStep({
                       updateLineItem(item.id, { quantity: q });
                     }
                   }}
-                  className="w-full min-h-[44px] px-2.5 py-2 rounded-lg border border-border text-sm font-mono"
+                  className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
                 />
               </label>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <span className="block text-xs font-medium text-text-secondary">
                   {t('verifyFieldUnitPrice')}
@@ -345,7 +356,10 @@ export function VerifyStep({
                   ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
                 />
               </div>
+            </div>
 
+            {/* 2-col numeric grid 2: Line Total + Date */}
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <span className="block text-xs font-medium text-text-secondary">
                   {t('verifyFieldLineTotal')}
@@ -358,10 +372,31 @@ export function VerifyStep({
                   ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
                 />
               </div>
+
+              <label className="block space-y-1">
+                <span className="text-xs font-medium text-text-secondary">
+                  {t('verifyFieldDate')}
+                </span>
+                <input
+                  type="text"
+                  value={item.date ?? ''}
+                  placeholder="YYYY-MM-DD"
+                  onChange={(e) => {
+                    const val = e.target.value.trim();
+                    if (val === '') {
+                      updateLineItem(item.id, { date: null });
+                    } else if (isValidISODate(val)) {
+                      updateLineItem(item.id, { date: val });
+                    }
+                  }}
+                  className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
+                />
+              </label>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-border gap-2">
-              <label className="inline-flex items-center gap-2 min-h-[44px] cursor-pointer text-sm font-medium text-text-primary">
+            <div className="pt-2.5 border-t border-border space-y-2">
+              <label className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-subtle-panel min-h-[44px] cursor-pointer text-sm font-medium text-text-primary">
+                <span>{t('verifyConfirmToggle')}</span>
                 <input
                   type="checkbox"
                   checked={item.isCheckedByUser}
@@ -372,13 +407,12 @@ export function VerifyStep({
                   }
                   className="w-5 h-5 accent-action-teal rounded cursor-pointer"
                 />
-                <span>{t('verifyConfirmToggle')}</span>
               </label>
 
               <button
                 type="button"
                 onClick={() => removeLineItem(item.id)}
-                className="min-h-[44px] px-3 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg rounded-lg cursor-pointer"
+                className="w-full min-h-[44px] px-3 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg border border-verdict-confirmed/20 rounded-xl cursor-pointer"
               >
                 {t('verifyRemoveRow')}
               </button>
@@ -388,24 +422,24 @@ export function VerifyStep({
       </section>
 
       {/* Desktop Line Items Table (>= 768px) */}
-      <section className="hidden md:block rounded-2xl border border-border bg-card-bg overflow-x-auto">
+      <section className="hidden md:block rounded-2xl border border-border bg-card-bg shadow-sm overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-border bg-subtle-panel text-xs font-semibold text-text-secondary">
-              <th className="p-3">{t('verifyFieldDescription')}</th>
-              <th className="p-3 w-36">{t('verifyFieldCategory')}</th>
-              <th className="p-3 w-20">{t('verifyFieldQty')}</th>
-              <th className="p-3 w-32">{t('verifyFieldUnitPrice')}</th>
-              <th className="p-3 w-32">{t('verifyFieldLineTotal')}</th>
-              <th className="p-3 w-36">{t('verifyFieldDate')}</th>
-              <th className="p-3 w-32">{t('verifyConfirmToggle')}</th>
+              <th className="p-3 min-w-[260px]">{t('verifyFieldDescription')}</th>
+              <th className="p-3 min-w-[140px]">{t('verifyFieldCategory')}</th>
+              <th className="p-3 min-w-[68px] w-[72px] text-center">{t('verifyFieldQty')}</th>
+              <th className="p-3 min-w-[120px]">{t('verifyFieldUnitPrice')}</th>
+              <th className="p-3 min-w-[120px]">{t('verifyFieldLineTotal')}</th>
+              <th className="p-3 min-w-[120px]">{t('verifyFieldDateShort')}</th>
+              <th className="p-3 min-w-[68px] text-center">{t('verifyFieldCheckedShort')}</th>
               <th className="p-3 w-20" />
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {bill.lineItems.map((item) => (
               <tr key={item.id} className="align-top">
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[260px]">
                   <input
                     type="text"
                     aria-label={t('verifyFieldDescription')}
@@ -417,10 +451,10 @@ export function VerifyStep({
                           e.target.value.trim() || item.normalizedName,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg border border-border text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-sm"
                   />
                 </td>
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[140px]">
                   <select
                     aria-label={t('verifyFieldCategory')}
                     value={item.category}
@@ -429,7 +463,7 @@ export function VerifyStep({
                         category: e.target.value as LineCategory,
                       })
                     }
-                    className="w-full min-h-[44px] px-2 py-2 rounded-lg border border-border bg-card-bg text-sm"
+                    className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-sm"
                   >
                     {LineCategorySchema.options.map((cat) => (
                       <option key={cat} value={cat}>
@@ -438,7 +472,7 @@ export function VerifyStep({
                     ))}
                   </select>
                 </td>
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[68px] w-[72px]">
                   <input
                     type="number"
                     min="0.01"
@@ -451,10 +485,10 @@ export function VerifyStep({
                         updateLineItem(item.id, { quantity: q });
                       }
                     }}
-                    className="w-full min-h-[44px] px-2 py-2 rounded-lg border border-border text-sm font-mono"
+                    className="w-full min-h-[44px] px-2 py-2 text-center rounded-lg scroll-mt-40 border border-border text-sm font-mono tabular-nums"
                   />
                 </td>
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[120px]">
                   <RupeeInput
                     paise={item.unitPricePaise}
                     onCommitPaise={(p) =>
@@ -463,7 +497,7 @@ export function VerifyStep({
                     ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
                   />
                 </td>
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[120px]">
                   <RupeeInput
                     paise={item.lineTotalPaise}
                     onCommitPaise={(p) =>
@@ -472,7 +506,7 @@ export function VerifyStep({
                     ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
                   />
                 </td>
-                <td className="p-2.5">
+                <td className="p-2.5 min-w-[120px]">
                   <input
                     type="text"
                     aria-label={t('verifyFieldDate')}
@@ -486,13 +520,14 @@ export function VerifyStep({
                         updateLineItem(item.id, { date: val });
                       }
                     }}
-                    className="w-full min-h-[44px] px-2 py-2 rounded-lg border border-border text-xs font-mono"
+                    className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border text-xs font-mono tabular-nums"
                   />
                 </td>
-                <td className="p-2.5">
-                  <label className="inline-flex items-center gap-2 min-h-[44px] cursor-pointer text-xs font-medium">
+                <td className="p-2.5 text-center">
+                  <label className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] cursor-pointer rounded-lg hover:bg-subtle-panel">
                     <input
                       type="checkbox"
+                      aria-label={`${t('verifyConfirmToggle')}: ${item.rawDescription}`}
                       checked={item.isCheckedByUser}
                       onChange={(e) =>
                         updateLineItem(item.id, {
@@ -501,7 +536,6 @@ export function VerifyStep({
                       }
                       className="w-5 h-5 accent-action-teal rounded cursor-pointer"
                     />
-                    <span>{t('verifyConfirmToggle')}</span>
                   </label>
                 </td>
                 <td className="p-2.5">
@@ -531,7 +565,7 @@ export function VerifyStep({
 
       {/* TPA Deductions Section (when present) */}
       {bill.tpaDeductions.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-5 space-y-3">
+        <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 shadow-sm space-y-3">
           <h3 className="text-base font-bold text-primary-navy">
             {t('verifyTpaSectionTitle')}
           </h3>
@@ -539,7 +573,7 @@ export function VerifyStep({
             {bill.tpaDeductions.map((ded) => (
               <div
                 key={ded.id}
-                className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-3 rounded-xl bg-subtle-panel border border-border"
+                className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-subtle-panel border border-border"
               >
                 <label className="block space-y-1">
                   <span className="text-xs font-medium text-text-secondary">
@@ -553,7 +587,7 @@ export function VerifyStep({
                         description: e.target.value,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg border border-border bg-card-bg text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base md:text-sm"
                   />
                 </label>
 
@@ -595,7 +629,7 @@ export function VerifyStep({
                         reasonText: e.target.value,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg border border-border bg-card-bg text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base md:text-sm"
                   />
                 </label>
               </div>

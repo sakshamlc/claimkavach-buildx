@@ -3,25 +3,25 @@
  * =========================
  * Single source of truth for all colors, spacing, and typography.
  * NO hardcoded hex values anywhere else in the codebase.
- * All verdict tiers use Color + Icon + Text Label (never color alone).
+ * All verdict tiers pair Color + Inline SVG Icon + Text Label.
  */
 
 // ─── Brand Colors ─────────────────────────────────────────────────────────────
 
 export const colors = {
   // Primary brand
-  primaryNavy: '#102A43',
+  primaryNavy: '#0B1530',
   actionTeal: '#0F766E',
   actionTealHover: '#0D9488',
   softTealTint: '#E0F2F1',
 
   // Surfaces
-  pageBg: '#F8FAFC',
+  pageBg: '#F4F7FA',
   cardBg: '#FFFFFF',
   subtlePanel: '#F1F5F9',
 
   // Text
-  textPrimary: '#102A43',
+  textPrimary: '#0B1530',
   textSecondary: '#334155',
   textMuted: '#64748B', // Passes 4.5:1 on white (#FFFFFF)
 
@@ -59,11 +59,18 @@ export type VerdictTier =
   | 'VALID_EXCLUSION'
   | 'NOT_CHECKED';
 
+export type VerdictIconName =
+  | 'alert-circle'
+  | 'alert-triangle'
+  | 'search'
+  | 'check-circle'
+  | 'minus-circle';
+
 export interface VerdictTierConfig {
   label: string;
   color: string;
   bgColor: string;
-  icon: string; // Emoji for accessibility (Color + Icon + Text Label)
+  iconName: VerdictIconName;
   description: string;
 }
 
@@ -72,35 +79,35 @@ export const verdictTiers: Record<VerdictTier, VerdictTierConfig> = {
     label: 'Confirmed Issue',
     color: colors.verdictConfirmed,
     bgColor: colors.verdictConfirmedBg,
-    icon: '🔴',
+    iconName: 'alert-circle',
     description: 'Backed by verified reference data or pure arithmetic error.',
   },
   LIKELY: {
     label: 'Likely Issue',
     color: colors.verdictLikely,
     bgColor: colors.verdictLikelyBg,
-    icon: '🟠',
+    iconName: 'alert-triangle',
     description: 'Strong signal such as duplicate line or unverified reference match.',
   },
   NEEDS_REVIEW: {
     label: 'Needs Review',
     color: colors.verdictNeedsReview,
     bgColor: colors.verdictNeedsReviewBg,
-    icon: '🔵',
+    iconName: 'search',
     description: 'Ambiguous or lump-sum item requiring itemized bill.',
   },
   VALID_EXCLUSION: {
     label: 'Valid / Standard',
     color: colors.verdictValidExclusion,
     bgColor: colors.verdictValidExclusionBg,
-    icon: '🟢',
+    iconName: 'check-circle',
     description: 'Legitimate charge or standard exclusion.',
   },
   NOT_CHECKED: {
     label: 'Not Checked',
     color: colors.verdictNotChecked,
     bgColor: colors.verdictNotCheckedBg,
-    icon: '⚪',
+    iconName: 'minus-circle',
     description: 'Could not verify — explicit reason provided.',
   },
 } as const;
@@ -119,16 +126,16 @@ export const spacing = {
 // ─── Typography ───────────────────────────────────────────────────────────────
 
 export const typography = {
-  fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-  fontFamilyMono: "'JetBrains Mono', 'Fira Code', monospace",
+  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  fontFamilyMono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   sizes: {
-    xs: '0.75rem',   // 12px
-    sm: '0.875rem',  // 14px
-    base: '1rem',    // 16px
-    lg: '1.125rem',  // 18px
-    xl: '1.25rem',   // 20px
-    '2xl': '1.5rem', // 24px
-    '3xl': '1.875rem', // 30px
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
   },
 } as const;
 
@@ -141,9 +148,7 @@ export const a11y = {
   focusRingOffset: '2px',
 } as const;
 
-// ─── Contrast Ratios (pre-computed for testing) ───────────────────────────────
-// WCAG AA requires >= 4.5:1 for normal text, >= 3:1 for large text.
-// These are the critical pairs we must verify.
+// ─── Contrast Ratios (pre-computed for WCAG AA testing) ───────────────────────
 
 export const contrastPairs: Array<{
   foreground: string;
@@ -162,5 +167,5 @@ export const contrastPairs: Array<{
   { foreground: colors.verdictValidExclusion, background: colors.verdictValidExclusionBg, label: 'Valid exclusion verdict text', minRatio: 4.5 },
   { foreground: colors.verdictNotChecked, background: colors.verdictNotCheckedBg, label: 'Not checked verdict text', minRatio: 4.5 },
   { foreground: colors.cardBg, background: colors.actionTeal, label: 'White text on teal button', minRatio: 4.5 },
-  { foreground: colors.cardBg, background: colors.primaryNavy, label: 'White text on navy', minRatio: 4.5 },
+  { foreground: colors.cardBg, background: colors.primaryNavy, label: 'White text on deep navy', minRatio: 4.5 },
 ];

@@ -1,3 +1,4 @@
+import { formatINR } from '@/lib/currency';
 import { isDateInRange } from '@/lib/dates';
 import { normalizeToken } from '@/lib/audit/normalize';
 import type {
@@ -89,14 +90,14 @@ export function checkTpaDeductions(
         tier: 'NEEDS_REVIEW',
         lineItemId: deduction.id,
         titleKey: 'findingTpaVagueDeduction',
-        summary: `Deduction of ${deduction.deductedPaise} paise on "${deduction.description}" cites a vague or incomplete reason ("${deduction.reasonText || 'none provided'}").`,
+        summary: `Deduction of ${formatINR(deduction.deductedPaise)} on "${deduction.description}" cites a vague or incomplete reason ("${deduction.reasonText || 'none provided'}").`,
         billedPaise: deduction.deductedPaise,
         referencePaise: null,
         deltaPaise: deduction.deductedPaise,
         unverifiedData: false,
         evidence: {
           kind: 'tpa',
-          formula: `Claimed ${deduction.claimedPaise} paise - Deducted ${deduction.deductedPaise} paise`,
+          formula: `Claimed ${formatINR(deduction.claimedPaise)} − Deducted ${formatINR(deduction.deductedPaise)}`,
           sourceTitle: null,
           instrumentNumber: null,
           instrumentDate: null,
@@ -157,14 +158,14 @@ export function checkTpaDeductions(
         tier: 'VALID_EXCLUSION',
         lineItemId: deduction.id,
         titleKey: 'findingTpaValidExclusion',
-        summary: `Deduction on "${deduction.description}" (${deduction.deductedPaise} paise) matches standard non-payable item "${matchedRule.canonicalName}".`,
+        summary: `Deduction on "${deduction.description}" (${formatINR(deduction.deductedPaise)}) matches standard non-payable item "${matchedRule.canonicalName}".`,
         billedPaise: deduction.deductedPaise,
         referencePaise: deduction.deductedPaise,
         deltaPaise: 0,
         unverifiedData: !matchedRule.verified,
         evidence: {
           kind: 'tpa',
-          formula: `Standard non-payable deduction: ${deduction.deductedPaise} paise`,
+          formula: `Standard non-payable deduction: ${formatINR(deduction.deductedPaise)}`,
           sourceTitle: matchedRule.sourceTitle,
           instrumentNumber: matchedRule.instrumentNumber,
           instrumentDate: matchedRule.instrumentDate,

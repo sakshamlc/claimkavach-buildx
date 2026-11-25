@@ -1,3 +1,4 @@
+import { formatINR } from '@/lib/currency';
 import { normalizeToken } from '@/lib/audit/normalize';
 import type { AuditFinding, NormalizedBill } from '@/lib/schemas/audit';
 
@@ -63,7 +64,7 @@ export function checkPharmacyLumpSums(bill: NormalizedBill): LumpSumCheckOutput 
       tier: 'NEEDS_REVIEW',
       lineItemId: item.id,
       titleKey: 'findingPharmacyLumpSum',
-      summary: `Unitemized lump-sum charge "${item.rawDescription}" (${item.lineTotalPaise} paise) requires an itemized pharmacy/consumables breakup.`,
+      summary: `Unitemized lump-sum charge "${item.rawDescription}" (${formatINR(item.lineTotalPaise)}) requires an itemized pharmacy/consumables breakup.`,
       billedPaise: item.lineTotalPaise,
       referencePaise: null,
       deltaPaise: null,

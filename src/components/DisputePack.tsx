@@ -38,21 +38,21 @@ export function DisputePack({ bill, report }: DisputePackProps) {
   }
 
   return (
-    <section className="no-print rounded-2xl border border-border bg-card-bg p-4 sm:p-6 space-y-4 shadow-sm">
+    <section className="no-print rounded-2xl border border-border bg-card-bg p-5 sm:p-6 space-y-4 shadow-sm">
       <div>
         <h3 className="text-lg font-bold text-primary-navy">
           {t('disputeTitle')}
         </h3>
-        <p className="text-sm text-text-secondary mt-1">
+        <p className="text-sm text-text-secondary mt-1 leading-relaxed">
           {t('disputeSubtitle')}
         </p>
       </div>
 
-      {/* 4 Draft Tabs */}
+      {/* 4 Draft Tabs (2x2 grid on narrow phones, wrapped row on >= 640px) */}
       <div
         role="tablist"
         aria-label={t('disputeTitle')}
-        className="flex flex-wrap gap-2"
+        className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2"
       >
         {drafts.map((draft) => {
           const isSelected = draft.id === activeTab;
@@ -67,8 +67,8 @@ export function DisputePack({ bill, report }: DisputePackProps) {
                 setCopyStatus('idle');
               }}
               className={`
-                min-h-[44px] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold
-                border transition-colors cursor-pointer
+                min-h-[44px] px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold
+                border transition-colors cursor-pointer text-center
                 ${
                   isSelected
                     ? 'bg-action-teal text-white border-action-teal'
@@ -94,8 +94,8 @@ export function DisputePack({ bill, report }: DisputePackProps) {
               rows={12}
               value={currentDraft.body}
               className="
-                w-full p-3.5 rounded-xl border border-border bg-subtle-panel
-                text-xs sm:text-sm font-mono text-text-primary leading-relaxed
+                w-full min-h-[260px] p-4 rounded-xl border border-border bg-card-bg
+                font-sans text-sm sm:text-base text-text-primary leading-relaxed shadow-xs
               "
             />
           </label>

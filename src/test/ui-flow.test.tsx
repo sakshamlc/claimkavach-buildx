@@ -35,7 +35,7 @@ describe('ClaimKavach 3-Step UI Flow', () => {
     const runAuditBtn = screen.getByRole('button', { name: /Run Deterministic Audit/i });
     fireEvent.click(runAuditBtn);
 
-    // Step 3: Report shows Coverage Summary, all 5 verdict tier headings, and zero merged total savings
+    // Step 3: Report shows Coverage Summary, all 5 verdict tier headings, INR formatting, pluralization, and zero merged total savings
     expect(screen.getByRole('heading', { name: /Audit Report/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Coverage Summary/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Confirmed Issue/i })).toBeInTheDocument();
@@ -44,6 +44,8 @@ describe('ClaimKavach 3-Step UI Flow', () => {
     expect(screen.getByRole('heading', { name: /Valid \/ Standard/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Not Checked/i })).toBeInTheDocument();
     expect(screen.queryByText(/Total Savings/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\bpaise\b/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/1 item\b/i).length).toBeGreaterThan(0);
 
     // Expand evidence panel on first finding
     const viewEvidenceBtns = screen.getAllByRole('button', { name: /View Evidence/i });
@@ -73,7 +75,11 @@ describe('ClaimKavach 3-Step UI Flow', () => {
     expect(screen.getByText(/Mismatch/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Run Deterministic Audit/i }));
-    expect(screen.getByText(/Audit Report/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Audit Report/i })).toBeInTheDocument();
+
+    // Interactive Stepper lets user click completed Verify step directly
+    fireEvent.click(screen.getByRole('button', { name: /^Verify$/i }));
+    expect(screen.getByText(/Verify Extracted Line Items/i)).toBeInTheDocument();
   });
 
   it('toggles language smoothly between English and Hindi', () => {

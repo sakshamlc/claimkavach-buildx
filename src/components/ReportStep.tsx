@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { DisputePack } from '@/components/DisputePack';
+import { PrinterIcon, VerdictIcon } from '@/components/Icons';
 import { ListenButton } from '@/components/ListenButton';
 import { formatINR } from '@/lib/currency';
-import { verdictTiers } from '@/lib/design-tokens';
 import { useI18n, type I18nKeys } from '@/lib/i18n';
 import type {
   AuditFinding,
@@ -38,59 +38,107 @@ const TIER_LABEL_KEYS: Record<AuditVerdictTier, I18nKeys> = {
 
 const TIER_STYLES: Record<
   AuditVerdictTier,
-  { container: string; badge: string; text: string }
+  { container: string; badge: string; text: string; leftAccent: string }
 > = {
   CONFIRMED: {
     container: 'border-verdict-confirmed/30 bg-card-bg',
     badge: 'bg-verdict-confirmed-bg text-verdict-confirmed border-verdict-confirmed/30',
     text: 'text-verdict-confirmed',
+    leftAccent: 'border-l-verdict-confirmed',
   },
   LIKELY: {
     container: 'border-verdict-likely/30 bg-card-bg',
     badge: 'bg-verdict-likely-bg text-verdict-likely border-verdict-likely/30',
     text: 'text-verdict-likely',
+    leftAccent: 'border-l-verdict-likely',
   },
   NEEDS_REVIEW: {
     container: 'border-verdict-needs-review/30 bg-card-bg',
     badge: 'bg-verdict-needs-review-bg text-verdict-needs-review border-verdict-needs-review/30',
     text: 'text-verdict-needs-review',
+    leftAccent: 'border-l-verdict-needs-review',
   },
   VALID_EXCLUSION: {
     container: 'border-verdict-valid/30 bg-card-bg',
     badge: 'bg-verdict-valid-bg text-verdict-valid border-verdict-valid/30',
     text: 'text-verdict-valid',
+    leftAccent: 'border-l-verdict-valid',
   },
   NOT_CHECKED: {
     container: 'border-border bg-card-bg',
     badge: 'bg-verdict-not-checked-bg text-verdict-not-checked border-border',
     text: 'text-verdict-not-checked',
+    leftAccent: 'border-l-verdict-not-checked',
   },
 };
+
+function EvidenceDetails({ finding }: { finding: AuditFinding }) {
+  const { t } = useI18n();
+  return (
+    <div className="space-y-1.5 text-xs text-text-secondary">
+      {finding.evidence.formula && (
+        <p>
+          <span className="font-semibold text-text-primary">
+            {t('reportFormulaLabel')}:{' '}
+          </span>
+          <span className="font-mono tabular-nums">{finding.evidence.formula}</span>
+        </p>
+      )}
+      {finding.evidence.sourceTitle && (
+        <p>
+          <span className="font-semibold text-text-primary">
+            {t('reportSourceTitleLabel')}:{' '}
+          </span>
+          {finding.evidence.sourceTitle}
+        </p>
+      )}
+      {finding.evidence.instrumentNumber && (
+        <p>
+          <span className="font-semibold text-text-primary">
+            {t('reportSourceOrder')}:{' '}
+          </span>
+          {finding.evidence.instrumentNumber}
+        </p>
+      )}
+      {finding.evidence.instrumentDate && (
+        <p>
+          <span className="font-semibold text-text-primary">
+            {t('reportInstrumentDateLabel')}:{' '}
+          </span>
+          <span className="font-mono">{finding.evidence.instrumentDate}</span>
+        </p>
+      )}
+      {finding.evidence.provenancePageRow && (
+        <p>
+          <span className="font-semibold text-text-primary">
+            {t('reportProvenanceLabel')}:{' '}
+          </span>
+          {finding.evidence.provenancePageRow}
+        </p>
+      )}
+      <p className="text-text-secondary">{finding.evidence.details}</p>
+    </div>
+  );
+}
 
 function FindingCard({ finding }: { finding: AuditFinding }) {
   const { t } = useI18n();
   const [evidenceOpen, setEvidenceOpen] = useState(false);
-  const tierMeta = verdictTiers[finding.tier];
   const style = TIER_STYLES[finding.tier];
 
   return (
-    <article className="rounded-xl border border-border bg-subtle-panel p-4 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <span
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${style.badge}`}
-        >
-          <span aria-hidden="true">{tierMeta.icon}</span>
-          <span>{t(TIER_LABEL_KEYS[finding.tier])}</span>
-        </span>
-
-        {finding.unverifiedData && (
+    <article
+      className={`rounded-xl border border-border border-l-4 ${style.leftAccent} bg-subtle-panel p-4 space-y-3`}
+    >
+      {finding.unverifiedData && (
+        <div>
           <span className="inline-flex items-center px-2 py-0.5 rounded bg-verdict-likely-bg text-verdict-likely border border-verdict-likely/30 text-xs font-semibold">
             {t('reportUnverifiedBadge')}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
-      <p className="text-sm font-medium text-text-primary leading-relaxed">
+      <p className="text-sm font-medium text-text-primary leading-relaxed break-words">
         {finding.summary}
       </p>
 
@@ -104,7 +152,7 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
               <span className="block text-text-muted">
                 {t('reportBilledAmount')}
               </span>
-              <span className="font-mono font-semibold text-text-primary">
+              <span className="font-mono tabular-nums font-semibold text-text-primary">
                 {formatINR(finding.billedPaise)}
               </span>
             </div>
@@ -114,7 +162,7 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
               <span className="block text-text-muted">
                 {t('reportReferenceAmount')}
               </span>
-              <span className="font-mono font-semibold text-text-primary">
+              <span className="font-mono tabular-nums font-semibold text-text-primary">
                 {formatINR(finding.referencePaise)}
               </span>
             </div>
@@ -124,7 +172,7 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
               <span className="block text-text-muted">
                 {t('reportDeltaAmount')}
               </span>
-              <span className={`font-mono font-bold ${style.text}`}>
+              <span className={`font-mono tabular-nums font-bold ${style.text}`}>
                 {formatINR(finding.deltaPaise)}
               </span>
             </div>
@@ -132,7 +180,7 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
         </div>
       )}
 
-      <p className="text-xs text-text-secondary">
+      <p className="text-xs text-text-secondary leading-relaxed">
         <span className="font-semibold text-text-primary">
           {t('reportRecommendedAction')}:{' '}
         </span>
@@ -152,54 +200,71 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
         <div
           className={
             evidenceOpen
-              ? 'mt-2 rounded-lg border border-border bg-card-bg p-3 text-xs text-text-secondary space-y-1.5'
-              : 'hidden print-evidence mt-2 rounded-lg border border-border bg-card-bg p-3 text-xs text-text-secondary space-y-1.5'
+              ? 'mt-2 rounded-lg border border-border bg-card-bg p-3'
+              : 'hidden print-evidence mt-2 rounded-lg border border-border bg-card-bg p-3'
           }
         >
-          {finding.evidence.formula && (
-            <p>
-              <span className="font-semibold text-text-primary">
-                {t('reportFormulaLabel')}:{' '}
-              </span>
-              <span className="font-mono">{finding.evidence.formula}</span>
-            </p>
-          )}
-          {finding.evidence.sourceTitle && (
-            <p>
-              <span className="font-semibold text-text-primary">
-                {t('reportSourceTitleLabel')}:{' '}
-              </span>
-              {finding.evidence.sourceTitle}
-            </p>
-          )}
-          {finding.evidence.instrumentNumber && (
-            <p>
-              <span className="font-semibold text-text-primary">
-                {t('reportSourceOrder')}:{' '}
-              </span>
-              {finding.evidence.instrumentNumber}
-            </p>
-          )}
-          {finding.evidence.instrumentDate && (
-            <p>
-              <span className="font-semibold text-text-primary">
-                {t('reportInstrumentDateLabel')}:{' '}
-              </span>
-              <span className="font-mono">{finding.evidence.instrumentDate}</span>
-            </p>
-          )}
-          {finding.evidence.provenancePageRow && (
-            <p>
-              <span className="font-semibold text-text-primary">
-                {t('reportProvenanceLabel')}:{' '}
-              </span>
-              {finding.evidence.provenancePageRow}
-            </p>
-          )}
-          <p className="text-text-secondary">{finding.evidence.details}</p>
+          <EvidenceDetails finding={finding} />
         </div>
       </div>
     </article>
+  );
+}
+
+function NotCheckedCompactRow({
+  finding,
+  bill,
+}: {
+  finding: AuditFinding;
+  bill: NormalizedBill;
+}) {
+  const { t } = useI18n();
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+
+  const lineLabel =
+    bill.lineItems.find((li) => li.id === finding.lineItemId)?.rawDescription ??
+    bill.tpaDeductions.find((td) => td.id === finding.lineItemId)?.description ??
+    finding.summary;
+
+  return (
+    <li className="p-3.5 sm:px-4 space-y-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="min-w-0 space-y-0.5">
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5">
+            <span className="text-sm font-semibold text-text-primary break-words">
+              {lineLabel}
+            </span>
+            {finding.billedPaise !== null && (
+              <span className="text-xs font-mono tabular-nums font-semibold text-text-secondary">
+                {formatINR(finding.billedPaise)}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-text-secondary leading-relaxed break-words">
+            {finding.evidence.details}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          aria-expanded={evidenceOpen}
+          onClick={() => setEvidenceOpen((prev) => !prev)}
+          className="min-h-[44px] px-3 py-1.5 rounded-lg border border-border bg-card-bg hover:bg-soft-teal-tint text-xs font-semibold text-action-teal cursor-pointer self-start sm:self-center flex-shrink-0"
+        >
+          {evidenceOpen ? t('reportHideEvidence') : t('reportEvidencePanel')}
+        </button>
+      </div>
+
+      <div
+        className={
+          evidenceOpen
+            ? 'rounded-lg border border-border bg-card-bg p-3'
+            : 'hidden print-evidence rounded-lg border border-border bg-card-bg p-3'
+        }
+      >
+        <EvidenceDetails finding={finding} />
+      </div>
+    </li>
   );
 }
 
@@ -212,26 +277,29 @@ export function ReportStep({
   const { t } = useI18n();
   const [notCheckedExpanded, setNotCheckedExpanded] = useState(false);
 
+  const formatCount = (count: number) =>
+    `${count} ${count === 1 ? t('itemSingular') : t('items')}`;
+
   return (
     <div className="space-y-6">
       {bill.isSynthetic && (
         <div
           role="note"
-          className="rounded-xl border border-action-teal/30 bg-soft-teal-tint px-4 py-3 text-sm font-semibold text-action-teal flex items-center gap-2"
+          className="rounded-xl border border-action-teal/30 bg-soft-teal-tint px-4 py-3 text-sm font-semibold text-action-teal flex flex-wrap items-center gap-2"
         >
           <span className="px-2 py-0.5 rounded bg-action-teal text-white text-xs font-bold">
             {t('syntheticBadge')}
           </span>
-          <span>{t('syntheticDemoBanner')}</span>
+          <span className="break-words">{t('syntheticDemoBanner')}</span>
         </div>
       )}
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-xl sm:text-2xl font-bold text-primary-navy">
             {t('reportTitle')}
           </h2>
-          <p className="text-sm text-text-secondary mt-1">
+          <p className="text-sm text-text-secondary mt-1 break-words">
             {bill.hospitalName} • {bill.patientName} • {bill.billDate}
           </p>
         </div>
@@ -243,9 +311,10 @@ export function ReportStep({
               window.print();
             }
           }}
-          className="no-print min-h-[44px] px-4 py-2 rounded-xl border border-border bg-card-bg hover:bg-soft-teal-tint text-sm font-semibold text-action-teal cursor-pointer self-start sm:self-auto"
+          className="no-print min-h-[44px] px-4 py-2 rounded-xl border border-border bg-card-bg hover:bg-soft-teal-tint text-sm font-semibold text-action-teal cursor-pointer self-start sm:self-auto inline-flex items-center gap-2"
         >
-          🖨️ {t('printReportButton')}
+          <PrinterIcon className="w-4 h-4" />
+          <span>{t('printReportButton')}</span>
         </button>
       </div>
 
@@ -253,7 +322,7 @@ export function ReportStep({
       <ListenButton report={report} />
 
       {/* Coverage Summary Card (Never merges tiers into single savings figure) */}
-      <section className="rounded-2xl border border-border bg-card-bg p-5 space-y-4 shadow-sm">
+      <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 space-y-4 shadow-sm">
         <h3 className="text-base font-bold text-primary-navy">
           {t('reportCoverageTitle')}
         </h3>
@@ -263,7 +332,7 @@ export function ReportStep({
             <p className="text-xs text-text-muted">
               {t('reportArithmeticChecked')}
             </p>
-            <p className="text-xl font-bold text-primary-navy font-mono mt-1">
+            <p className="text-xl font-bold text-primary-navy font-mono tabular-nums mt-1">
               {report.coverage.arithmeticCheckedCount} {t('of')}{' '}
               {report.coverage.totalLines}
             </p>
@@ -273,7 +342,7 @@ export function ReportStep({
             <p className="text-xs text-text-muted">
               {t('reportReferenceChecked')}
             </p>
-            <p className="text-xl font-bold text-primary-navy font-mono mt-1">
+            <p className="text-xl font-bold text-primary-navy font-mono tabular-nums mt-1">
               {report.coverage.referenceCheckedCount} {t('of')}{' '}
               {report.coverage.totalLines}
             </p>
@@ -281,14 +350,14 @@ export function ReportStep({
 
           <div className="rounded-xl bg-verdict-not-checked-bg border border-border p-3.5">
             <p className="text-xs text-text-muted">{t('reportNotChecked')}</p>
-            <p className="text-xl font-bold text-verdict-not-checked font-mono mt-1">
-              {report.coverage.notCheckedCount} {t('items')}
+            <p className="text-xl font-bold text-verdict-not-checked font-mono tabular-nums mt-1">
+              {formatCount(report.coverage.notCheckedCount)}
             </p>
           </div>
         </div>
 
         {report.coverage.notCheckedReasons.length > 0 && (
-          <div>
+          <div className="no-print">
             <button
               type="button"
               aria-expanded={notCheckedExpanded}
@@ -300,14 +369,22 @@ export function ReportStep({
 
             {notCheckedExpanded && (
               <ul className="mt-2 space-y-1.5 text-xs text-text-secondary bg-subtle-panel rounded-xl border border-border p-3">
-                {report.coverage.notCheckedReasons.map((item) => (
-                  <li key={`${item.lineId}-${item.reason}`}>
-                    <span className="font-mono font-semibold text-text-primary">
-                      {item.lineId}:
-                    </span>{' '}
-                    {item.reason}
-                  </li>
-                ))}
+                {report.coverage.notCheckedReasons.map((item) => {
+                  const rowName =
+                    bill.lineItems.find((li) => li.id === item.lineId)
+                      ?.rawDescription ??
+                    bill.tpaDeductions.find((td) => td.id === item.lineId)
+                      ?.description ??
+                    item.lineId;
+                  return (
+                    <li key={`${item.lineId}-${item.reason}`}>
+                      <span className="font-semibold text-text-primary">
+                        {rowName}:
+                      </span>{' '}
+                      {item.reason}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -322,32 +399,41 @@ export function ReportStep({
       <section className="space-y-4">
         {TIER_ORDER.map((tierKey) => {
           const bucket = report.tiers[tierKey];
-          const meta = verdictTiers[tierKey];
           const style = TIER_STYLES[tierKey];
 
           return (
             <div
               key={tierKey}
-              className={`card rounded-2xl border p-4 sm:p-5 space-y-3 ${style.container}`}
+              className={`card rounded-2xl border p-5 sm:p-6 shadow-sm space-y-3 ${style.container}`}
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg" aria-hidden="true">
-                    {meta.icon}
+                  <span className={style.text}>
+                    <VerdictIcon tier={tierKey} className="w-5 h-5" />
                   </span>
                   <h3 className={`text-base font-bold ${style.text}`}>
                     {t(TIER_LABEL_KEYS[tierKey])}
                   </h3>
                 </div>
                 <span
-                  className={`px-2.5 py-1 rounded-full border text-xs font-bold font-mono ${style.badge}`}
+                  className={`px-2.5 py-1 rounded-full border text-xs font-bold font-mono tabular-nums ${style.badge}`}
                 >
-                  {bucket.count} {t('items')}
+                  {formatCount(bucket.count)}
                 </span>
               </div>
 
               {bucket.count === 0 ? (
                 <p className="text-sm text-text-muted">{t('reportNoItemsInTier')}</p>
+              ) : tierKey === 'NOT_CHECKED' ? (
+                <ul className="divide-y divide-border rounded-xl border border-border bg-subtle-panel">
+                  {bucket.findings.map((finding) => (
+                    <NotCheckedCompactRow
+                      key={finding.id}
+                      finding={finding}
+                      bill={bill}
+                    />
+                  ))}
+                </ul>
               ) : (
                 <div className="space-y-3">
                   {bucket.findings.map((finding) => (

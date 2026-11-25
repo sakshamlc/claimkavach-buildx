@@ -1,4 +1,4 @@
-import { multiplyPaise, subtractPaise } from '@/lib/currency';
+import { formatINR, multiplyPaise, subtractPaise } from '@/lib/currency';
 import { isDateInRange } from '@/lib/dates';
 import { normalizeToken } from '@/lib/audit/normalize';
 import type {
@@ -189,14 +189,14 @@ export function checkPriceOrders(
         titleKey: matched.verified
           ? 'findingPriceExceedsConfirmed'
           : 'findingPriceExceedsUnverified',
-        summary: `Unit price (${item.unitPricePaise} paise) for "${item.rawDescription}" exceeds listed ceiling (${matched.ceilingPricePaise} paise) in ${matched.instrumentNumber}.`,
+        summary: `Unit price (${formatINR(item.unitPricePaise)}) for "${item.rawDescription}" exceeds listed ceiling (${formatINR(matched.ceilingPricePaise)}) in ${matched.instrumentNumber}.`,
         billedPaise: item.lineTotalPaise,
         referencePaise: multiplyPaise(matched.ceilingPricePaise, item.quantity),
         deltaPaise: totalDeltaPaise,
         unverifiedData,
         evidence: {
           kind: 'reference',
-          formula: `(${item.unitPricePaise} - ${matched.ceilingPricePaise}) × ${item.quantity} = ${totalDeltaPaise} paise above listed ceiling (${matched.gstTreatment})`,
+          formula: `(${formatINR(item.unitPricePaise)} − ${formatINR(matched.ceilingPricePaise)}) × ${item.quantity} = ${formatINR(totalDeltaPaise)} above listed ceiling (${matched.gstTreatment})`,
           sourceTitle: matched.sourceTitle,
           instrumentNumber: matched.instrumentNumber,
           instrumentDate: matched.instrumentDate,

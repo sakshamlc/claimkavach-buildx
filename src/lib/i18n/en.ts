@@ -43,6 +43,7 @@ const en = {
   uploadConsentRequired: 'Please tick the privacy consent box above before uploading a file.',
   uploadProgressCompressing: 'Preparing and compressing bill pages...',
   uploadProgressBatch: 'Reading batch',
+  uploadFriendlyWait: 'Taking a careful look at your bill pages. This usually takes just a few seconds.',
   loadDemoButton: 'Load Demo Bill',
 
   // Verify
@@ -61,6 +62,8 @@ const en = {
   verifyReconciledBadge: 'Reconciled',
   verifyMismatchBadge: 'Mismatch',
   verifyDifferenceLabel: 'Difference',
+  reconcileHelperMatch: 'Everything adds up — the extracted lines match the stated bill total.',
+  reconcileHelperMismatch: 'The extracted lines differ from the stated bill total. Please check for a missed page, discount, tax, or typo before auditing.',
   verifyConfirmToggle: 'I checked this',
   verifyRunAudit: 'Run Deterministic Audit',
   verifyBackToUpload: 'Back to Upload',
@@ -72,6 +75,8 @@ const en = {
   verifyFieldUnitPrice: 'Unit Price (₹)',
   verifyFieldLineTotal: 'Line Total (₹)',
   verifyFieldDate: 'Date (YYYY-MM-DD)',
+  verifyFieldDateShort: 'Date',
+  verifyFieldCheckedShort: 'Checked',
   verifyTpaSectionTitle: 'TPA / Insurer Deductions',
   verifyTpaClaimed: 'Claimed (₹)',
   verifyTpaDeducted: 'Deducted (₹)',
@@ -106,7 +111,7 @@ const en = {
   reportReferenceAmount: 'Reference / Expected',
   reportDeltaAmount: 'Difference',
   reportRecommendedAction: 'Suggested Next Step',
-  reportNoItemsInTier: 'No items in this category.',
+  reportNoItemsInTier: 'Nothing flagged here — no items in this category.',
   reportUnverifiedBadge: 'Unverified Data',
   reportVerifiedBadge: 'Verified Data',
   reportTransparencyNote: 'Each tier is shown separately so verified findings, likely signals, items needing review, and unchecked items are never merged into an inflated single number.',
@@ -181,6 +186,7 @@ const en = {
 
   // Misc
   of: 'of',
+  itemSingular: 'item',
   items: 'items',
   close: 'Close',
   back: 'Back',

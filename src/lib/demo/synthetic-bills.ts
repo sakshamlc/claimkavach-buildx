@@ -1,3 +1,4 @@
+import type { VerdictTier } from '@/lib/design-tokens';
 import type { I18nKeys } from '@/lib/i18n';
 import { NormalizedBillSchema, type NormalizedBill } from '@/lib/schemas/audit';
 
@@ -10,7 +11,7 @@ import { NormalizedBillSchema, type NormalizedBill } from '@/lib/schemas/audit';
 
 export interface SyntheticDemoScenario {
   id: 'stent-duplicate-lumpsum' | 'tpa-deduction-review' | 'clean-accurate-bill';
-  icon: string;
+  tierHint: VerdictTier;
   titleKey: I18nKeys;
   descriptionKey: I18nKeys;
   bill: NormalizedBill;
@@ -189,21 +190,21 @@ const scenarioCBill: NormalizedBill = NormalizedBillSchema.parse({
 export const SYNTHETIC_DEMO_SCENARIOS: readonly SyntheticDemoScenario[] = [
   {
     id: 'stent-duplicate-lumpsum',
-    icon: '🔴',
+    tierHint: 'CONFIRMED',
     titleKey: 'demoScenarioA',
     descriptionKey: 'demoScenarioADesc',
     bill: scenarioABill,
   },
   {
     id: 'tpa-deduction-review',
-    icon: '🟠',
+    tierHint: 'NEEDS_REVIEW',
     titleKey: 'demoScenarioB',
     descriptionKey: 'demoScenarioBDesc',
     bill: scenarioBBill,
   },
   {
     id: 'clean-accurate-bill',
-    icon: '🟢',
+    tierHint: 'VALID_EXCLUSION',
     titleKey: 'demoScenarioC',
     descriptionKey: 'demoScenarioCDesc',
     bill: scenarioCBill,

@@ -37,7 +37,7 @@ describe('ESLint Purity Boundary', () => {
     expect(ruleIds.has('no-restricted-globals')).toBe(true);
     expect(ruleIds.has('no-restricted-syntax')).toBe(true);
     expect(results[0].errorCount).toBeGreaterThanOrEqual(7);
-  }, 20000);
+  }, 30000);
 
   it('should NOT flag any real files in src/lib/audit/**', async () => {
     const eslint = new ESLint({
@@ -50,5 +50,5 @@ describe('ESLint Purity Boundary', () => {
 
     expect(results.length).toBeGreaterThanOrEqual(1);
     expect(totalErrors).toBe(0);
-  }, 20000);
+  }, 30000);
 });

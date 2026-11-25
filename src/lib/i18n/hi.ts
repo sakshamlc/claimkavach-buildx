@@ -26,8 +26,11 @@ const hi = {
   demoStripTitle: 'सिंथेटिक डेमो बिल आज़माएँ',
   demoStripSubtitle: 'पहले से बने नमूना बिलों के साथ ClaimKavach को काम करते देखें',
   demoScenarioA: 'स्टेंट अधिक शुल्क + डुप्लिकेट + एकमुश्त राशि',
+  demoScenarioADesc: 'DES स्टेंट, गणितीय अंतर, दोहराया गया लैब टेस्ट और एकमुश्त फ़ार्मेसी शुल्क वाला एंजियोप्लास्टी बिल।',
   demoScenarioB: 'TPA / बीमाकर्ता कटौती समीक्षा',
+  demoScenarioBDesc: 'कंज्यूमेबल्स कटौती और अस्पष्ट "Reasonable & Customary" कटौती वाला डिस्चार्ज क्लेम।',
   demoScenarioC: 'सही बिल (शून्य गलत पहचान)',
+  demoScenarioCDesc: 'सटीक जोड़, स्पष्ट इकाई विवरण और बिना किसी विसंगति वाला साफ अस्पताल बिल।',
   syntheticBadge: 'सिंथेटिक',
 
   // Upload

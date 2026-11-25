@@ -26,8 +26,11 @@ const en = {
   demoStripTitle: 'Try Synthetic Demo Bills',
   demoStripSubtitle: 'See ClaimKavach in action with pre-built sample bills',
   demoScenarioA: 'Stent Overcharge + Duplicate + Lump Sum',
+  demoScenarioADesc: 'Cardiac angioplasty bill with DES stent, arithmetic mismatch, repeated lab test, and bulk pharmacy lump sum.',
   demoScenarioB: 'TPA / Insurer Deduction Review',
+  demoScenarioBDesc: 'Discharge deduction sheet with consumables exclusion and vague Reasonable & Customary cut.',
   demoScenarioC: 'Clean Bill (Zero False Positives)',
+  demoScenarioCDesc: 'Accurately itemized inpatient bill with matching totals and clear unit specifications.',
   syntheticBadge: 'SYNTHETIC',
 
   // Upload

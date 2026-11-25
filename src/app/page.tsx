@@ -11,6 +11,7 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Disclaimer } from '@/components/Disclaimer';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { ReportStep } from '@/components/ReportStep';
@@ -73,8 +74,8 @@ function ClaimKavachApp() {
   return (
     <div className="min-h-screen bg-page-bg flex flex-col">
       {/* Header */}
-      <header className="bg-card-bg border-b border-border sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <header className="no-print bg-card-bg border-b border-border sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xl sm:text-2xl" aria-hidden="true">
               🛡️
@@ -88,7 +89,15 @@ function ClaimKavachApp() {
               </p>
             </div>
           </div>
-          <LanguageToggle />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/sources"
+              className="min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-text-secondary hover:text-action-teal hover:bg-subtle-panel transition-colors"
+            >
+              {t('sourcesNavLink')}
+            </Link>
+            <LanguageToggle />
+          </div>
         </div>
       </header>
 
@@ -131,6 +140,14 @@ function ClaimKavachApp() {
       {/* Footer */}
       <footer className="max-w-5xl mx-auto px-4 sm:px-6 pb-8 w-full">
         <Disclaimer />
+        <div className="no-print mt-3 text-center">
+          <Link
+            href="/sources"
+            className="inline-flex items-center min-h-[44px] px-3 text-xs font-medium text-action-teal hover:underline"
+          >
+            {t('sourcesNavLink')}
+          </Link>
+        </div>
       </footer>
     </div>
   );

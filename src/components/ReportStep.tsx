@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { DisputePack } from '@/components/DisputePack';
+import { ListenButton } from '@/components/ListenButton';
 import { formatINR } from '@/lib/currency';
 import { verdictTiers } from '@/lib/design-tokens';
 import { useI18n, type I18nKeys } from '@/lib/i18n';
@@ -147,51 +149,55 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
           {evidenceOpen ? t('reportHideEvidence') : t('reportViewEvidence')}
         </button>
 
-        {evidenceOpen && (
-          <div className="mt-2 rounded-lg border border-border bg-card-bg p-3 text-xs text-text-secondary space-y-1.5">
-            {finding.evidence.formula && (
-              <p>
-                <span className="font-semibold text-text-primary">
-                  {t('reportFormulaLabel')}:{' '}
-                </span>
-                <span className="font-mono">{finding.evidence.formula}</span>
-              </p>
-            )}
-            {finding.evidence.sourceTitle && (
-              <p>
-                <span className="font-semibold text-text-primary">
-                  {t('reportSourceTitleLabel')}:{' '}
-                </span>
-                {finding.evidence.sourceTitle}
-              </p>
-            )}
-            {finding.evidence.instrumentNumber && (
-              <p>
-                <span className="font-semibold text-text-primary">
-                  {t('reportSourceOrder')}:{' '}
-                </span>
-                {finding.evidence.instrumentNumber}
-              </p>
-            )}
-            {finding.evidence.instrumentDate && (
-              <p>
-                <span className="font-semibold text-text-primary">
-                  {t('reportInstrumentDateLabel')}:{' '}
-                </span>
-                <span className="font-mono">{finding.evidence.instrumentDate}</span>
-              </p>
-            )}
-            {finding.evidence.provenancePageRow && (
-              <p>
-                <span className="font-semibold text-text-primary">
-                  {t('reportProvenanceLabel')}:{' '}
-                </span>
-                {finding.evidence.provenancePageRow}
-              </p>
-            )}
-            <p className="text-text-secondary">{finding.evidence.details}</p>
-          </div>
-        )}
+        <div
+          className={
+            evidenceOpen
+              ? 'mt-2 rounded-lg border border-border bg-card-bg p-3 text-xs text-text-secondary space-y-1.5'
+              : 'hidden print-evidence mt-2 rounded-lg border border-border bg-card-bg p-3 text-xs text-text-secondary space-y-1.5'
+          }
+        >
+          {finding.evidence.formula && (
+            <p>
+              <span className="font-semibold text-text-primary">
+                {t('reportFormulaLabel')}:{' '}
+              </span>
+              <span className="font-mono">{finding.evidence.formula}</span>
+            </p>
+          )}
+          {finding.evidence.sourceTitle && (
+            <p>
+              <span className="font-semibold text-text-primary">
+                {t('reportSourceTitleLabel')}:{' '}
+              </span>
+              {finding.evidence.sourceTitle}
+            </p>
+          )}
+          {finding.evidence.instrumentNumber && (
+            <p>
+              <span className="font-semibold text-text-primary">
+                {t('reportSourceOrder')}:{' '}
+              </span>
+              {finding.evidence.instrumentNumber}
+            </p>
+          )}
+          {finding.evidence.instrumentDate && (
+            <p>
+              <span className="font-semibold text-text-primary">
+                {t('reportInstrumentDateLabel')}:{' '}
+              </span>
+              <span className="font-mono">{finding.evidence.instrumentDate}</span>
+            </p>
+          )}
+          {finding.evidence.provenancePageRow && (
+            <p>
+              <span className="font-semibold text-text-primary">
+                {t('reportProvenanceLabel')}:{' '}
+              </span>
+              {finding.evidence.provenancePageRow}
+            </p>
+          )}
+          <p className="text-text-secondary">{finding.evidence.details}</p>
+        </div>
       </div>
     </article>
   );
@@ -220,14 +226,31 @@ export function ReportStep({
         </div>
       )}
 
-      <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-primary-navy">
-          {t('reportTitle')}
-        </h2>
-        <p className="text-sm text-text-secondary mt-1">
-          {bill.hospitalName} • {bill.patientName} • {bill.billDate}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-primary-navy">
+            {t('reportTitle')}
+          </h2>
+          <p className="text-sm text-text-secondary mt-1">
+            {bill.hospitalName} • {bill.patientName} • {bill.billDate}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (typeof window !== 'undefined' && typeof window.print === 'function') {
+              window.print();
+            }
+          }}
+          className="no-print min-h-[44px] px-4 py-2 rounded-xl border border-border bg-card-bg hover:bg-soft-teal-tint text-sm font-semibold text-action-teal cursor-pointer self-start sm:self-auto"
+        >
+          🖨️ {t('printReportButton')}
+        </button>
       </div>
+
+      {/* Audio Summary (Web Speech API) */}
+      <ListenButton report={report} />
 
       {/* Coverage Summary Card (Never merges tiers into single savings figure) */}
       <section className="rounded-2xl border border-border bg-card-bg p-5 space-y-4 shadow-sm">
@@ -337,13 +360,11 @@ export function ReportStep({
         })}
       </section>
 
-      {/* Phase 5 Hook Banner */}
-      <section className="rounded-2xl border border-dashed border-border bg-subtle-panel p-4 text-xs text-text-secondary text-center">
-        {t('reportDisputePhase5Hook')}
-      </section>
+      {/* Polite Dispute Draft Pack */}
+      <DisputePack bill={bill} report={report} />
 
       {/* Footer Actions */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <button
           type="button"
           onClick={onBackToVerify}

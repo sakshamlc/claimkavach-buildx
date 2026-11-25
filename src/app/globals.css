@@ -84,21 +84,31 @@ body {
 /* ─── Print Stylesheet ──────────────────────────────────────────────────── */
 
 @media print {
-  body {
-    background: white;
-    color: black;
-    font-size: 12pt;
+  @page {
+    size: A4;
+    margin: 14mm;
   }
 
-  /* Hide non-essential elements */
+  body {
+    background: var(--color-card-bg);
+    color: var(--color-text-primary);
+    font-size: 11pt;
+  }
+
+  /* Hide navigation chrome, language toggles, upload/action buttons, and audio controls */
+  header,
   nav,
   button,
-  .no-print,
-  footer {
+  .no-print {
     display: none !important;
   }
 
-  /* Ensure cards print with borders */
+  /* Show expanded evidence details cleanly on printed A4 pages */
+  .print-evidence {
+    display: block !important;
+  }
+
+  /* Ensure cards print with crisp borders and avoid awkward page splits */
   .card {
     border: 1px solid var(--color-border);
     break-inside: avoid;

@@ -48,8 +48,23 @@ describe('ClaimKavach 3-Step UI Flow', () => {
     // Expand evidence panel on first finding
     const viewEvidenceBtns = screen.getAllByRole('button', { name: /View Evidence/i });
     expect(viewEvidenceBtns.length).toBeGreaterThan(0);
+    expect(viewEvidenceBtns[0]).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(viewEvidenceBtns[0]);
-    expect(screen.getByText(/Calculation:/i)).toBeInTheDocument();
+    const hideEvidenceBtns = screen.getAllByRole('button', { name: /Hide Evidence/i });
+    expect(hideEvidenceBtns[0]).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByText(/Calculation:/i).length).toBeGreaterThan(0);
+
+    // Dispute Pack tabs, checklist, and Print button render on Step 3
+    expect(screen.getByRole('heading', { name: /Dispute Draft Pack/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Hospital Billing Query/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Insurer Grievance Officer/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Insurance Ombudsman/i })).toBeInTheDocument();
+    expect(screen.getByText(/Verify before sending:/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Print \/ Save as PDF/i })).toBeInTheDocument();
+
+    // Switch dispute tab
+    fireEvent.click(screen.getByRole('tab', { name: /Insurer Grievance Officer/i }));
+    expect(screen.getByText(/Copy-ready draft: Insurer Grievance Officer/i)).toBeInTheDocument();
 
     // Back to Verify -> edit stated total -> live Reconcile Bar updates -> rerun audit
     fireEvent.click(screen.getByRole('button', { name: /Edit Bill \(Back to Verify\)/i }));

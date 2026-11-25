@@ -75,7 +75,7 @@ const TIER_STYLES: Record<
 function EvidenceDetails({ finding }: { finding: AuditFinding }) {
   const { t } = useI18n();
   return (
-    <div className="space-y-1.5 text-xs text-text-secondary">
+    <div className="space-y-1.5 text-xs text-text-secondary break-words">
       {finding.evidence.formula && (
         <p>
           <span className="font-semibold text-text-primary">
@@ -180,7 +180,7 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
         </div>
       )}
 
-      <p className="text-xs text-text-secondary leading-relaxed">
+      <p className="text-xs text-text-secondary leading-relaxed break-words">
         <span className="font-semibold text-text-primary">
           {t('reportRecommendedAction')}:{' '}
         </span>
@@ -281,7 +281,7 @@ export function ReportStep({
     `${count} ${count === 1 ? t('itemSingular') : t('items')}`;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {bill.isSynthetic && (
         <div
           role="note"
@@ -311,7 +311,7 @@ export function ReportStep({
               window.print();
             }
           }}
-          className="no-print min-h-[44px] px-4 py-2 rounded-xl border border-border bg-card-bg hover:bg-soft-teal-tint text-sm font-semibold text-action-teal cursor-pointer self-start sm:self-auto inline-flex items-center gap-2"
+          className="no-print w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl border border-border bg-card-bg hover:bg-soft-teal-tint text-sm font-semibold text-action-teal cursor-pointer inline-flex items-center justify-center gap-2 flex-shrink-0"
         >
           <PrinterIcon className="w-4 h-4" />
           <span>{t('printReportButton')}</span>
@@ -322,7 +322,7 @@ export function ReportStep({
       <ListenButton report={report} />
 
       {/* Coverage Summary Card (Never merges tiers into single savings figure) */}
-      <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 space-y-4 shadow-sm">
+      <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-6 space-y-4 shadow-sm">
         <h3 className="text-base font-bold text-primary-navy">
           {t('reportCoverageTitle')}
         </h3>
@@ -377,7 +377,7 @@ export function ReportStep({
                       ?.description ??
                     item.lineId;
                   return (
-                    <li key={`${item.lineId}-${item.reason}`}>
+                    <li key={`${item.lineId}-${item.reason}`} className="break-words">
                       <span className="font-semibold text-text-primary">
                         {rowName}:
                       </span>{' '}
@@ -404,19 +404,19 @@ export function ReportStep({
           return (
             <div
               key={tierKey}
-              className={`card rounded-2xl border p-5 sm:p-6 shadow-sm space-y-3 ${style.container}`}
+              className={`card rounded-2xl border p-4 sm:p-6 shadow-sm space-y-3 ${style.container}`}
             >
               <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className={style.text}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`${style.text} flex-shrink-0`}>
                     <VerdictIcon tier={tierKey} className="w-5 h-5" />
                   </span>
-                  <h3 className={`text-base font-bold ${style.text}`}>
+                  <h3 className={`text-base font-bold ${style.text} break-words`}>
                     {t(TIER_LABEL_KEYS[tierKey])}
                   </h3>
                 </div>
                 <span
-                  className={`px-2.5 py-1 rounded-full border text-xs font-bold font-mono tabular-nums ${style.badge}`}
+                  className={`px-2.5 py-1 rounded-full border text-xs font-bold font-mono tabular-nums flex-shrink-0 ${style.badge}`}
                 >
                   {formatCount(bucket.count)}
                 </span>

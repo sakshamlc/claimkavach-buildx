@@ -17,7 +17,7 @@ export function Disclaimer() {
     <div className="border-t border-border mt-8 pt-6">
       <p className="text-xs text-text-muted text-center max-w-2xl mx-auto leading-relaxed flex items-start justify-center gap-1.5">
         <InfoIcon className="w-4 h-4 flex-shrink-0 mt-0.5 text-text-muted" />
-        <span>{t('disclaimer')}</span>
+        <span className="min-w-0 break-words">{t('disclaimer')}</span>
       </p>
     </div>
   );

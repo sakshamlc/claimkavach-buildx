@@ -16,7 +16,7 @@ interface StepperProps {
 
 export function Stepper({ currentStep, labels, onStepSelect }: StepperProps) {
   return (
-    <nav aria-label="Audit progress" className="w-full max-w-lg mx-auto">
+    <nav aria-label="Audit progress" className="w-full max-w-lg mx-auto px-2">
       <ol className="flex items-start justify-between">
         {labels.map((label, index) => {
           const isCompleted = index < currentStep;
@@ -66,7 +66,7 @@ export function Stepper({ currentStep, labels, onStepSelect }: StepperProps) {
             >
               {index > 0 && (
                 <div
-                  className={`flex-1 h-0.5 mt-5 mx-2 sm:mx-3 transition-colors duration-200 ${
+                  className={`flex-1 h-0.5 mt-5 mx-1.5 sm:mx-3 transition-colors duration-200 ${
                     isCompleted || isCurrent ? 'bg-action-teal' : 'bg-border'
                   }`}
                   aria-hidden="true"
@@ -78,12 +78,12 @@ export function Stepper({ currentStep, labels, onStepSelect }: StepperProps) {
                   type="button"
                   onClick={() => onStepSelect(index)}
                   aria-label={label}
-                  className="flex flex-col items-center gap-1.5 min-w-[56px] min-h-[44px] px-1 py-0.5 rounded-xl hover:bg-soft-teal-tint/60 transition-colors cursor-pointer"
+                  className="flex flex-col items-center gap-1.5 min-w-[60px] sm:min-w-[72px] min-h-[44px] px-1 py-0.5 rounded-xl hover:bg-soft-teal-tint/60 transition-colors cursor-pointer"
                 >
                   {stepInner}
                 </button>
               ) : (
-                <div className="flex flex-col items-center gap-1.5 min-w-[56px] min-h-[44px] px-1 py-0.5">
+                <div className="flex flex-col items-center gap-1.5 min-w-[60px] sm:min-w-[72px] min-h-[44px] px-1 py-0.5">
                   {stepInner}
                 </div>
               )}

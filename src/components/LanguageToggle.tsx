@@ -25,8 +25,8 @@ export function LanguageToggle({
       type="button"
       onClick={toggleLocale}
       className={`
-        min-w-[44px] min-h-[44px] px-3.5 py-2
-        text-sm font-semibold rounded-lg transition-colors duration-150
+        min-w-[44px] min-h-[44px] px-3 sm:px-3.5 py-2 whitespace-nowrap
+        text-xs sm:text-sm font-semibold rounded-lg transition-colors duration-150
         focus:outline-none focus-visible:ring-2 cursor-pointer
         ${variantClasses}
       `}

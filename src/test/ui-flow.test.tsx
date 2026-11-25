@@ -88,4 +88,36 @@ describe('ClaimKavach 3-Step UI Flow', () => {
     fireEvent.click(toggle);
     expect(screen.getByText(/सिंथेटिक डेमो बिल आज़माएँ/i)).toBeInTheDocument();
   });
+
+  it('tracks reviewed items, handles blank inputs safely, and disables audit when all rows are removed', () => {
+    render(<Home />);
+    const demoButtons = screen.getAllByRole('button', { name: /Load Demo Bill/i });
+    fireEvent.click(demoButtons[2]); // Clean Bill (3 items)
+
+    expect(screen.getByText(/0 of 3 items reviewed by you/i)).toBeInTheDocument();
+
+    // Clearing Stated Bill Total temporarily and blurring safely normalizes to ₹0.00 (no NaN)
+    const statedTotalInput = screen.getByLabelText(/Stated Bill Total/i);
+    fireEvent.focus(statedTotalInput);
+    fireEvent.change(statedTotalInput, { target: { value: '' } });
+    fireEvent.blur(statedTotalInput);
+    expect(screen.queryByText(/NaN/i)).not.toBeInTheDocument();
+
+    // Check first item checkbox increments reviewed count
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    expect(screen.getByText(/1 of 3 items reviewed by you/i)).toBeInTheDocument();
+
+    // Remove all rows (each row renders mobile card + desktop table button; clicking the first per remaining row removes it)
+    while (screen.queryAllByRole('button', { name: /^Remove$/i }).length > 0) {
+      fireEvent.click(screen.getAllByRole('button', { name: /^Remove$/i })[0]);
+    }
+
+    expect(screen.getByText(/Add at least one line item to run the audit/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Run Deterministic Audit/i })).toBeDisabled();
+
+    // Adding a row restores ability to run audit
+    fireEvent.click(screen.getByRole('button', { name: /Add Line Item/i }));
+    expect(screen.getByRole('button', { name: /Run Deterministic Audit/i })).not.toBeDisabled();
+  });
 });

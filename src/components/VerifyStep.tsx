@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { VerdictIcon } from '@/components/Icons';
 import { addPaise, formatINR, rupeesToPaise, subtractPaise } from '@/lib/currency';
 import { isValidISODate } from '@/lib/dates';
@@ -58,27 +58,143 @@ function RupeeInput({
       }}
       onBlur={() => {
         setFocused(false);
-        const parsed = Number(draft);
+        const trimmed = draft.trim();
+        if (trimmed === '') {
+          onCommitPaise(0);
+          setDraft('0.00');
+          return;
+        }
+        const parsed = Number(trimmed);
         if (Number.isFinite(parsed) && parsed >= 0) {
           const rounded = rupeesToPaise(parsed);
           onCommitPaise(rounded);
           setDraft((rounded / 100).toFixed(2));
         } else {
-          setDraft((paise / 100).toFixed(2));
+          onCommitPaise(0);
+          setDraft('0.00');
+        }
+      }}
+      onChange={(e) => {
+        const nextVal = e.target.value;
+        setDraft(nextVal);
+        if (nextVal.trim() === '') {
+          onCommitPaise(0);
+          return;
+        }
+        const parsed = Number(nextVal);
+        if (Number.isFinite(parsed) && parsed >= 0) {
+          onCommitPaise(rupeesToPaise(parsed));
+        }
+      }}
+      className="
+        w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40
+        bg-card-bg border border-border text-base sm:text-sm text-text-primary font-mono tabular-nums
+      "
+    />
+  );
+}
+
+function QtyInput({
+  quantity,
+  onCommitQty,
+  ariaLabel,
+  className,
+}: {
+  quantity: number;
+  onCommitQty: (nextQty: number) => void;
+  ariaLabel: string;
+  className: string;
+}) {
+  const [draft, setDraft] = useState(String(quantity));
+  const [focused, setFocused] = useState(false);
+  const displayValue = focused ? draft : String(quantity);
+
+  return (
+    <input
+      type="number"
+      min="0.01"
+      step="any"
+      aria-label={ariaLabel}
+      value={displayValue}
+      onFocus={() => {
+        setDraft(String(quantity));
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+        const parsed = Number(draft.trim());
+        if (Number.isFinite(parsed) && parsed > 0) {
+          onCommitQty(parsed);
+          setDraft(String(parsed));
+        } else {
+          onCommitQty(1);
+          setDraft('1');
         }
       }}
       onChange={(e) => {
         const nextVal = e.target.value;
         setDraft(nextVal);
         const parsed = Number(nextVal);
-        if (nextVal.trim() !== '' && Number.isFinite(parsed) && parsed >= 0) {
-          onCommitPaise(rupeesToPaise(parsed));
+        if (nextVal.trim() !== '' && Number.isFinite(parsed) && parsed > 0) {
+          onCommitQty(parsed);
         }
       }}
-      className="
-        w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40
-        bg-card-bg border border-border text-base md:text-sm text-text-primary font-mono tabular-nums
-      "
+      className={className}
+    />
+  );
+}
+
+function IsoDateInput({
+  value,
+  allowEmpty,
+  onCommitDate,
+  ariaLabel,
+  className,
+}: {
+  value: string | null;
+  allowEmpty: boolean;
+  onCommitDate: (next: string | null) => void;
+  ariaLabel: string;
+  className: string;
+}) {
+  const [draft, setDraft] = useState(value ?? '');
+  const [focused, setFocused] = useState(false);
+  const displayValue = focused ? draft : (value ?? '');
+
+  return (
+    <input
+      type="text"
+      aria-label={ariaLabel}
+      value={displayValue}
+      placeholder="YYYY-MM-DD"
+      onFocus={() => {
+        setDraft(value ?? '');
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+        const trimmed = draft.trim();
+        if (allowEmpty && trimmed === '') {
+          onCommitDate(null);
+          setDraft('');
+        } else if (isValidISODate(trimmed)) {
+          onCommitDate(trimmed);
+          setDraft(trimmed);
+        } else {
+          setDraft(value ?? '');
+        }
+      }}
+      onChange={(e) => {
+        const nextVal = e.target.value;
+        setDraft(nextVal);
+        const trimmed = nextVal.trim();
+        if (allowEmpty && trimmed === '') {
+          onCommitDate(null);
+        } else if (isValidISODate(trimmed)) {
+          onCommitDate(trimmed);
+        }
+      }}
+      className={className}
     />
   );
 }
@@ -90,12 +206,38 @@ export function VerifyStep({
   onBack,
 }: VerifyStepProps) {
   const { t } = useI18n();
+  const rowCounterRef = useRef(1);
+  const pendingFocusIdRef = useRef<string | null>(null);
+  const mobileDescRefs = useRef<Map<string, HTMLInputElement>>(new Map());
+  const desktopDescRefs = useRef<Map<string, HTMLInputElement>>(new Map());
 
   const computedSumPaise = addPaise(
     ...bill.lineItems.map((item) => item.lineTotalPaise),
   );
   const differencePaise = subtractPaise(bill.statedTotalPaise, computedSumPaise);
   const isReconciled = differencePaise === 0;
+  const reviewedCount = bill.lineItems.filter(
+    (item) => item.isCheckedByUser,
+  ).length;
+  const totalCount = bill.lineItems.length;
+
+  useEffect(() => {
+    const targetId = pendingFocusIdRef.current;
+    if (!targetId) return;
+    pendingFocusIdRef.current = null;
+    const desktopEl = desktopDescRefs.current.get(targetId);
+    const mobileEl = mobileDescRefs.current.get(targetId);
+    const target =
+      desktopEl && desktopEl.offsetParent !== null
+        ? desktopEl
+        : mobileEl ?? desktopEl;
+    if (target) {
+      target.focus();
+      if (typeof target.scrollIntoView === 'function') {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [bill.lineItems.length]);
 
   function updateLineItem(id: string, patch: Partial<BillLineItem>) {
     onBillChange({
@@ -114,9 +256,10 @@ export function VerifyStep({
   }
 
   function addLineItem() {
-    const nextIdx = bill.lineItems.length + 1;
+    const seq = rowCounterRef.current++;
+    const newId = `line-manual-${Date.now()}-${seq}`;
     const newItem: BillLineItem = {
-      id: `line-manual-${Date.now()}-${nextIdx}`,
+      id: newId,
       rawDescription: 'New Line Item',
       normalizedName: 'New Line Item',
       category: 'other',
@@ -128,6 +271,7 @@ export function VerifyStep({
       date: bill.billDate,
       isCheckedByUser: false,
     };
+    pendingFocusIdRef.current = newId;
     onBillChange({
       ...bill,
       lineItems: [...bill.lineItems, newItem],
@@ -144,7 +288,7 @@ export function VerifyStep({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 min-w-0">
       {/* Synthetic Badge Banner */}
       {bill.isSynthetic && (
         <div
@@ -168,18 +312,18 @@ export function VerifyStep({
       </div>
 
       {/* Sticky Reconcile Bar */}
-      <div className="sticky top-[64px] z-10 rounded-2xl border border-border bg-card-bg/95 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-2.5">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-6">
-            <div>
-              <p className="text-xs text-text-muted">{t('reconcileBillTotal')}</p>
-              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums">
+      <div className="sticky top-[64px] z-10 rounded-2xl border border-border bg-card-bg/95 backdrop-blur-sm p-3.5 sm:p-5 shadow-sm space-y-1.5 sm:space-y-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-6 min-w-0">
+            <div className="min-w-0">
+              <p className="text-xs text-text-muted truncate">{t('reconcileBillTotal')}</p>
+              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums truncate">
                 {formatINR(bill.statedTotalPaise)}
               </p>
             </div>
-            <div>
-              <p className="text-xs text-text-muted">{t('reconcileExtractedSum')}</p>
-              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums">
+            <div className="min-w-0">
+              <p className="text-xs text-text-muted truncate">{t('reconcileExtractedSum')}</p>
+              <p className="text-base sm:text-lg font-bold text-primary-navy font-mono tabular-nums truncate">
                 {formatINR(computedSumPaise)}
               </p>
             </div>
@@ -189,7 +333,7 @@ export function VerifyStep({
             role="status"
             aria-live="polite"
             className={`
-              inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold tabular-nums
+              inline-flex items-center gap-2 px-3 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold tabular-nums min-w-0 break-words
               ${
                 isReconciled
                   ? 'bg-verdict-valid-bg text-verdict-valid'
@@ -201,7 +345,7 @@ export function VerifyStep({
               tier={isReconciled ? 'VALID_EXCLUSION' : 'LIKELY'}
               className="w-4 h-4 flex-shrink-0"
             />
-            <span>
+            <span className="min-w-0 break-words">
               {isReconciled
                 ? `${t('verifyReconciledBadge')} (${formatINR(0)})`
                 : `${t('verifyMismatchBadge')}: ${t('verifyDifferenceLabel')} ${formatINR(differencePaise)}`}
@@ -209,16 +353,21 @@ export function VerifyStep({
           </div>
         </div>
 
-        <p className="text-xs text-text-secondary leading-relaxed">
-          {isReconciled
-            ? t('reconcileHelperMatch')
-            : t('reconcileHelperMismatch')}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 text-xs text-text-secondary">
+          <p className="leading-relaxed">
+            {isReconciled
+              ? t('reconcileHelperMatch')
+              : t('reconcileHelperMismatch')}
+          </p>
+          <span className="inline-flex items-center self-start sm:self-auto px-2.5 py-0.5 rounded-full bg-subtle-panel border border-border font-medium text-text-primary tabular-nums whitespace-nowrap">
+            {reviewedCount} {t('of')} {totalCount} {t('verifyReviewedProgress')}
+          </span>
+        </div>
       </div>
 
       {/* Bill Metadata */}
-      <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
-        <label className="block space-y-1 sm:col-span-2 lg:col-span-2">
+      <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-6 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+        <label className="block space-y-1 sm:col-span-2 lg:col-span-2 min-w-0">
           <span className="text-xs font-medium text-text-secondary">
             {t('verifyHospitalLabel')}
           </span>
@@ -228,11 +377,11 @@ export function VerifyStep({
             onChange={(e) =>
               onBillChange({ ...bill, hospitalName: e.target.value })
             }
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base sm:text-sm text-text-primary"
           />
         </label>
 
-        <label className="block space-y-1 sm:col-span-2 lg:col-span-2">
+        <label className="block space-y-1 sm:col-span-2 lg:col-span-2 min-w-0">
           <span className="text-xs font-medium text-text-secondary">
             {t('verifyPatientLabel')}
           </span>
@@ -242,29 +391,28 @@ export function VerifyStep({
             onChange={(e) =>
               onBillChange({ ...bill, patientName: e.target.value })
             }
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base sm:text-sm text-text-primary"
           />
         </label>
 
-        <label className="block space-y-1">
+        <label className="block space-y-1 min-w-0">
           <span className="text-xs font-medium text-text-secondary">
             {t('verifyBillDateLabel')}
           </span>
-          <input
-            type="text"
+          <IsoDateInput
             value={bill.billDate}
-            onChange={(e) => {
-              const val = e.target.value.trim();
-              if (isValidISODate(val)) {
-                onBillChange({ ...bill, billDate: val });
+            allowEmpty={false}
+            ariaLabel={t('verifyBillDateLabel')}
+            onCommitDate={(next) => {
+              if (next) {
+                onBillChange({ ...bill, billDate: next });
               }
             }}
-            placeholder="YYYY-MM-DD"
-            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base md:text-sm text-text-primary font-mono tabular-nums"
+            className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 bg-card-bg border border-border text-base sm:text-sm text-text-primary font-mono tabular-nums"
           />
         </label>
 
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           <span className="block text-xs font-medium text-text-secondary">
             {t('verifyStatedTotalLabel')}
           </span>
@@ -278,192 +426,58 @@ export function VerifyStep({
         </div>
       </section>
 
-      {/* Mobile Line Items (< 768px) */}
-      <section className="space-y-4 md:hidden">
-        {bill.lineItems.map((item) => (
-          <div
-            key={item.id}
-            className="rounded-2xl border border-border bg-card-bg p-5 shadow-sm space-y-3.5"
-          >
-            <label className="block space-y-1">
-              <span className="text-xs font-medium text-text-secondary">
-                {t('verifyFieldDescription')}
-              </span>
-              <input
-                type="text"
-                value={item.rawDescription}
-                onChange={(e) =>
-                  updateLineItem(item.id, {
-                    rawDescription: e.target.value,
-                    normalizedName: e.target.value.trim() || item.normalizedName,
-                  })
-                }
-                className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 border border-border text-base"
-              />
-            </label>
-
-            <label className="block space-y-1">
-              <span className="text-xs font-medium text-text-secondary">
-                {t('verifyFieldCategory')}
-              </span>
-              <select
-                value={item.category}
-                onChange={(e) =>
-                  updateLineItem(item.id, {
-                    category: e.target.value as LineCategory,
-                  })
-                }
-                className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base"
-              >
-                {LineCategorySchema.options.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {t(CATEGORY_LABEL_KEYS[cat])}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            {/* 2-col numeric grid 1: Qty + Unit Price */}
-            <div className="grid grid-cols-2 gap-3">
-              <label className="block space-y-1">
-                <span className="text-xs font-medium text-text-secondary">
-                  {t('verifyFieldQty')}
-                </span>
-                <input
-                  type="number"
-                  min="0.01"
-                  step="any"
-                  value={item.quantity}
-                  onChange={(e) => {
-                    const q = Number(e.target.value);
-                    if (Number.isFinite(q) && q > 0) {
-                      updateLineItem(item.id, { quantity: q });
-                    }
-                  }}
-                  className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
-                />
-              </label>
-
-              <div className="space-y-1">
-                <span className="block text-xs font-medium text-text-secondary">
-                  {t('verifyFieldUnitPrice')}
-                </span>
-                <RupeeInput
-                  paise={item.unitPricePaise}
-                  onCommitPaise={(p) =>
-                    updateLineItem(item.id, { unitPricePaise: p })
-                  }
-                  ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
-                />
-              </div>
-            </div>
-
-            {/* 2-col numeric grid 2: Line Total + Date */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <span className="block text-xs font-medium text-text-secondary">
-                  {t('verifyFieldLineTotal')}
-                </span>
-                <RupeeInput
-                  paise={item.lineTotalPaise}
-                  onCommitPaise={(p) =>
-                    updateLineItem(item.id, { lineTotalPaise: p })
-                  }
-                  ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
-                />
-              </div>
-
-              <label className="block space-y-1">
-                <span className="text-xs font-medium text-text-secondary">
-                  {t('verifyFieldDate')}
-                </span>
-                <input
-                  type="text"
-                  value={item.date ?? ''}
-                  placeholder="YYYY-MM-DD"
-                  onChange={(e) => {
-                    const val = e.target.value.trim();
-                    if (val === '') {
-                      updateLineItem(item.id, { date: null });
-                    } else if (isValidISODate(val)) {
-                      updateLineItem(item.id, { date: val });
-                    }
-                  }}
-                  className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
-                />
-              </label>
-            </div>
-
-            <div className="pt-2.5 border-t border-border space-y-2">
-              <label className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-subtle-panel min-h-[44px] cursor-pointer text-sm font-medium text-text-primary">
-                <span>{t('verifyConfirmToggle')}</span>
-                <input
-                  type="checkbox"
-                  checked={item.isCheckedByUser}
-                  onChange={(e) =>
-                    updateLineItem(item.id, {
-                      isCheckedByUser: e.target.checked,
-                    })
-                  }
-                  className="w-5 h-5 accent-action-teal rounded cursor-pointer"
-                />
-              </label>
-
-              <button
-                type="button"
-                onClick={() => removeLineItem(item.id)}
-                className="w-full min-h-[44px] px-3 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg border border-verdict-confirmed/20 rounded-xl cursor-pointer"
-              >
-                {t('verifyRemoveRow')}
-              </button>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* Desktop Line Items Table (>= 768px) */}
-      <section className="hidden md:block rounded-2xl border border-border bg-card-bg shadow-sm overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-border bg-subtle-panel text-xs font-semibold text-text-secondary">
-              <th className="p-3 min-w-[260px]">{t('verifyFieldDescription')}</th>
-              <th className="p-3 min-w-[140px]">{t('verifyFieldCategory')}</th>
-              <th className="p-3 min-w-[72px] w-[72px] text-center">{t('verifyFieldQty')}</th>
-              <th className="p-3 min-w-[120px]">{t('verifyFieldUnitPrice')}</th>
-              <th className="p-3 min-w-[120px]">{t('verifyFieldLineTotal')}</th>
-              <th className="p-3 min-w-[120px]">{t('verifyFieldDateShort')}</th>
-              <th className="p-3 min-w-[68px] text-center">{t('verifyFieldCheckedShort')}</th>
-              <th className="p-3 w-20" />
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
+      {/* Empty State when all rows removed */}
+      {bill.lineItems.length === 0 ? (
+        <section
+          role="status"
+          className="rounded-2xl border border-verdict-likely/30 bg-verdict-likely-bg p-6 text-center space-y-2"
+        >
+          <p className="text-sm font-semibold text-verdict-likely">
+            {t('verifyEmptyLinesPrompt')}
+          </p>
+        </section>
+      ) : (
+        <>
+          {/* Mobile Line Items (< 768px) */}
+          <section className="space-y-4 md:hidden">
             {bill.lineItems.map((item) => (
-              <tr key={item.id} className="align-top">
-                <td className="p-2.5 min-w-[260px]">
+              <div
+                key={item.id}
+                className="rounded-2xl border border-border bg-card-bg p-4 shadow-sm space-y-3.5"
+              >
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-text-secondary">
+                    {t('verifyFieldDescription')}
+                  </span>
                   <input
+                    ref={(el) => {
+                      if (el) mobileDescRefs.current.set(item.id, el);
+                      else mobileDescRefs.current.delete(item.id);
+                    }}
                     type="text"
-                    aria-label={t('verifyFieldDescription')}
                     value={item.rawDescription}
                     onChange={(e) =>
                       updateLineItem(item.id, {
                         rawDescription: e.target.value,
-                        normalizedName:
-                          e.target.value.trim() || item.normalizedName,
+                        normalizedName: e.target.value.trim() || item.normalizedName,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-sm"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-lg scroll-mt-40 border border-border text-base"
                   />
-                </td>
-                <td className="p-2.5 min-w-[140px]">
+                </label>
+
+                <label className="block space-y-1">
+                  <span className="text-xs font-medium text-text-secondary">
+                    {t('verifyFieldCategory')}
+                  </span>
                   <select
-                    aria-label={t('verifyFieldCategory')}
                     value={item.category}
                     onChange={(e) =>
                       updateLineItem(item.id, {
                         category: e.target.value as LineCategory,
                       })
                     }
-                    className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base"
                   >
                     {LineCategorySchema.options.map((cat) => (
                       <option key={cat} value={cat}>
@@ -471,63 +485,72 @@ export function VerifyStep({
                       </option>
                     ))}
                   </select>
-                </td>
-                <td className="p-2.5 min-w-[72px] w-[72px]">
-                  <input
-                    type="number"
-                    min="0.01"
-                    step="any"
-                    aria-label={t('verifyFieldQty')}
-                    value={item.quantity}
-                    onChange={(e) => {
-                      const q = Number(e.target.value);
-                      if (Number.isFinite(q) && q > 0) {
-                        updateLineItem(item.id, { quantity: q });
+                </label>
+
+                {/* 2-col numeric grid 1: Qty + Unit Price */}
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block space-y-1 min-w-0">
+                    <span className="text-xs font-medium text-text-secondary">
+                      {t('verifyFieldQty')}
+                    </span>
+                    <QtyInput
+                      quantity={item.quantity}
+                      ariaLabel={`${item.rawDescription} ${t('verifyFieldQty')}`}
+                      onCommitQty={(q) => updateLineItem(item.id, { quantity: q })}
+                      className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
+                    />
+                  </label>
+
+                  <div className="space-y-1 min-w-0">
+                    <span className="block text-xs font-medium text-text-secondary">
+                      {t('verifyFieldUnitPrice')}
+                    </span>
+                    <RupeeInput
+                      paise={item.unitPricePaise}
+                      onCommitPaise={(p) =>
+                        updateLineItem(item.id, { unitPricePaise: p })
                       }
-                    }}
-                    className="w-full min-h-[44px] px-2 py-2 text-center rounded-lg scroll-mt-40 border border-border text-sm font-mono tabular-nums"
-                  />
-                </td>
-                <td className="p-2.5 min-w-[120px]">
-                  <RupeeInput
-                    paise={item.unitPricePaise}
-                    onCommitPaise={(p) =>
-                      updateLineItem(item.id, { unitPricePaise: p })
-                    }
-                    ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
-                  />
-                </td>
-                <td className="p-2.5 min-w-[120px]">
-                  <RupeeInput
-                    paise={item.lineTotalPaise}
-                    onCommitPaise={(p) =>
-                      updateLineItem(item.id, { lineTotalPaise: p })
-                    }
-                    ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
-                  />
-                </td>
-                <td className="p-2.5 min-w-[120px]">
-                  <input
-                    type="text"
-                    aria-label={t('verifyFieldDate')}
-                    value={item.date ?? ''}
-                    placeholder="YYYY-MM-DD"
-                    onChange={(e) => {
-                      const val = e.target.value.trim();
-                      if (val === '') {
-                        updateLineItem(item.id, { date: null });
-                      } else if (isValidISODate(val)) {
-                        updateLineItem(item.id, { date: val });
+                      ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
+                    />
+                  </div>
+                </div>
+
+                {/* 2-col numeric grid 2: Line Total + Date */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1 min-w-0">
+                    <span className="block text-xs font-medium text-text-secondary">
+                      {t('verifyFieldLineTotal')}
+                    </span>
+                    <RupeeInput
+                      paise={item.lineTotalPaise}
+                      onCommitPaise={(p) =>
+                        updateLineItem(item.id, { lineTotalPaise: p })
                       }
-                    }}
-                    className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border text-xs font-mono tabular-nums"
-                  />
-                </td>
-                <td className="p-2.5 text-center">
-                  <label className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] cursor-pointer rounded-lg hover:bg-subtle-panel">
+                      ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
+                    />
+                  </div>
+
+                  <label className="block space-y-1 min-w-0">
+                    <span className="text-xs font-medium text-text-secondary">
+                      {t('verifyFieldDate')}
+                    </span>
+                    <IsoDateInput
+                      value={item.date}
+                      allowEmpty={true}
+                      ariaLabel={`${item.rawDescription} ${t('verifyFieldDate')}`}
+                      onCommitDate={(next) =>
+                        updateLineItem(item.id, { date: next })
+                      }
+                      className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base font-mono tabular-nums"
+                    />
+                  </label>
+                </div>
+
+                <div className="pt-2.5 border-t border-border space-y-2">
+                  <label className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-subtle-panel min-h-[44px] cursor-pointer text-sm font-medium text-text-primary">
+                    <span>{t('verifyConfirmToggle')}</span>
                     <input
                       type="checkbox"
-                      aria-label={`${t('verifyConfirmToggle')}: ${item.rawDescription}`}
                       checked={item.isCheckedByUser}
                       onChange={(e) =>
                         updateLineItem(item.id, {
@@ -537,27 +560,148 @@ export function VerifyStep({
                       className="w-5 h-5 accent-action-teal rounded cursor-pointer"
                     />
                   </label>
-                </td>
-                <td className="p-2.5">
+
                   <button
                     type="button"
                     onClick={() => removeLineItem(item.id)}
-                    className="min-h-[44px] px-2.5 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg rounded-lg cursor-pointer"
+                    className="w-full min-h-[44px] px-3 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg border border-verdict-confirmed/20 rounded-xl cursor-pointer"
                   >
                     {t('verifyRemoveRow')}
                   </button>
-                </td>
-              </tr>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      </section>
+          </section>
+
+          {/* Desktop Line Items Table (>= 768px) */}
+          <section className="hidden md:block rounded-2xl border border-border bg-card-bg shadow-sm overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-border bg-subtle-panel text-xs font-semibold text-text-secondary">
+                  <th className="p-3 min-w-[260px]">{t('verifyFieldDescription')}</th>
+                  <th className="p-3 min-w-[140px]">{t('verifyFieldCategory')}</th>
+                  <th className="p-3 min-w-[72px] w-[72px] text-center">{t('verifyFieldQty')}</th>
+                  <th className="p-3 min-w-[120px]">{t('verifyFieldUnitPrice')}</th>
+                  <th className="p-3 min-w-[120px]">{t('verifyFieldLineTotal')}</th>
+                  <th className="p-3 min-w-[120px]">{t('verifyFieldDateShort')}</th>
+                  <th className="p-3 min-w-[68px] text-center">{t('verifyFieldCheckedShort')}</th>
+                  <th className="p-3 w-20" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {bill.lineItems.map((item) => (
+                  <tr key={item.id} className="align-top">
+                    <td className="p-2.5 min-w-[260px]">
+                      <input
+                        ref={(el) => {
+                          if (el) desktopDescRefs.current.set(item.id, el);
+                          else desktopDescRefs.current.delete(item.id);
+                        }}
+                        type="text"
+                        aria-label={t('verifyFieldDescription')}
+                        value={item.rawDescription}
+                        onChange={(e) =>
+                          updateLineItem(item.id, {
+                            rawDescription: e.target.value,
+                            normalizedName:
+                              e.target.value.trim() || item.normalizedName,
+                          })
+                        }
+                        className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border text-base md:text-sm"
+                      />
+                    </td>
+                    <td className="p-2.5 min-w-[140px]">
+                      <select
+                        aria-label={t('verifyFieldCategory')}
+                        value={item.category}
+                        onChange={(e) =>
+                          updateLineItem(item.id, {
+                            category: e.target.value as LineCategory,
+                          })
+                        }
+                        className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base md:text-sm"
+                      >
+                        {LineCategorySchema.options.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {t(CATEGORY_LABEL_KEYS[cat])}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="p-2.5 min-w-[72px] w-[72px]">
+                      <QtyInput
+                        quantity={item.quantity}
+                        ariaLabel={t('verifyFieldQty')}
+                        onCommitQty={(q) => updateLineItem(item.id, { quantity: q })}
+                        className="w-full min-h-[44px] px-2 py-2 text-center rounded-lg scroll-mt-40 border border-border text-base md:text-sm font-mono tabular-nums"
+                      />
+                    </td>
+                    <td className="p-2.5 min-w-[120px]">
+                      <RupeeInput
+                        paise={item.unitPricePaise}
+                        onCommitPaise={(p) =>
+                          updateLineItem(item.id, { unitPricePaise: p })
+                        }
+                        ariaLabel={`${item.rawDescription} ${t('verifyFieldUnitPrice')}`}
+                      />
+                    </td>
+                    <td className="p-2.5 min-w-[120px]">
+                      <RupeeInput
+                        paise={item.lineTotalPaise}
+                        onCommitPaise={(p) =>
+                          updateLineItem(item.id, { lineTotalPaise: p })
+                        }
+                        ariaLabel={`${item.rawDescription} ${t('verifyFieldLineTotal')}`}
+                      />
+                    </td>
+                    <td className="p-2.5 min-w-[120px]">
+                      <IsoDateInput
+                        value={item.date}
+                        allowEmpty={true}
+                        ariaLabel={t('verifyFieldDate')}
+                        onCommitDate={(next) =>
+                          updateLineItem(item.id, { date: next })
+                        }
+                        className="w-full min-h-[44px] px-2 py-2 rounded-lg scroll-mt-40 border border-border text-base md:text-xs font-mono tabular-nums"
+                      />
+                    </td>
+                    <td className="p-2.5 text-center">
+                      <label className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] cursor-pointer rounded-lg hover:bg-subtle-panel">
+                        <input
+                          type="checkbox"
+                          aria-label={`${t('verifyConfirmToggle')}: ${item.rawDescription}`}
+                          checked={item.isCheckedByUser}
+                          onChange={(e) =>
+                            updateLineItem(item.id, {
+                              isCheckedByUser: e.target.checked,
+                            })
+                          }
+                          className="w-5 h-5 accent-action-teal rounded cursor-pointer"
+                        />
+                      </label>
+                    </td>
+                    <td className="p-2.5">
+                      <button
+                        type="button"
+                        onClick={() => removeLineItem(item.id)}
+                        className="min-h-[44px] px-2.5 py-2 text-xs font-semibold text-verdict-confirmed hover:bg-verdict-confirmed-bg rounded-lg cursor-pointer"
+                      >
+                        {t('verifyRemoveRow')}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        </>
+      )}
 
       <div>
         <button
           type="button"
           onClick={addLineItem}
-          className="min-h-[44px] px-4 py-2 rounded-xl border border-action-teal/40 text-action-teal bg-soft-teal-tint hover:bg-action-teal/10 text-sm font-semibold cursor-pointer"
+          className="w-full sm:w-auto min-h-[44px] px-4 py-2 rounded-xl border border-action-teal/40 text-action-teal bg-soft-teal-tint hover:bg-action-teal/10 text-sm font-semibold cursor-pointer"
         >
           + {t('verifyAddRow')}
         </button>
@@ -565,7 +709,7 @@ export function VerifyStep({
 
       {/* TPA Deductions Section (when present) */}
       {bill.tpaDeductions.length > 0 && (
-        <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 shadow-sm space-y-3">
+        <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-6 shadow-sm space-y-3">
           <h3 className="text-base font-bold text-primary-navy">
             {t('verifyTpaSectionTitle')}
           </h3>
@@ -575,7 +719,7 @@ export function VerifyStep({
                 key={ded.id}
                 className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-subtle-panel border border-border"
               >
-                <label className="block space-y-1">
+                <label className="block space-y-1 min-w-0">
                   <span className="text-xs font-medium text-text-secondary">
                     {t('verifyFieldDescription')}
                   </span>
@@ -587,11 +731,11 @@ export function VerifyStep({
                         description: e.target.value,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base md:text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base sm:text-sm"
                   />
                 </label>
 
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0">
                   <span className="block text-xs font-medium text-text-secondary">
                     {t('verifyTpaClaimed')}
                   </span>
@@ -604,7 +748,7 @@ export function VerifyStep({
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 min-w-0">
                   <span className="block text-xs font-medium text-text-secondary">
                     {t('verifyTpaDeducted')}
                   </span>
@@ -617,7 +761,7 @@ export function VerifyStep({
                   />
                 </div>
 
-                <label className="block space-y-1">
+                <label className="block space-y-1 min-w-0">
                   <span className="text-xs font-medium text-text-secondary">
                     {t('verifyTpaReason')}
                   </span>
@@ -629,7 +773,7 @@ export function VerifyStep({
                         reasonText: e.target.value,
                       })
                     }
-                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base md:text-sm"
+                    className="w-full min-h-[44px] px-2.5 py-2 rounded-lg scroll-mt-40 border border-border bg-card-bg text-base sm:text-sm"
                   />
                 </label>
               </div>
@@ -650,8 +794,9 @@ export function VerifyStep({
 
         <button
           type="button"
+          disabled={bill.lineItems.length === 0}
           onClick={() => onRunAudit(bill)}
-          className="min-h-[48px] px-6 py-3 rounded-xl bg-action-teal hover:bg-action-teal-hover text-white text-base font-semibold shadow-sm cursor-pointer"
+          className="min-h-[48px] px-6 py-3 rounded-xl bg-action-teal hover:bg-action-teal-hover text-white text-base font-semibold shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {t('verifyRunAudit')} →
         </button>

@@ -35,23 +35,25 @@ function SourcesContent() {
   return (
     <div className="min-h-screen bg-page-bg flex flex-col overflow-x-hidden">
       <header className="bg-primary-navy text-white border-b border-primary-navy sticky top-0 z-20 shadow-sm">
-        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 text-soft-teal-tint flex-shrink-0">
               <BrandShieldIcon className="w-5 h-5" />
             </span>
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-xs sm:text-sm font-semibold text-white/95 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 min-h-[44px] px-2 text-xs sm:text-sm font-semibold text-white/95 hover:text-white hover:bg-white/10 rounded-lg transition-colors whitespace-nowrap truncate"
             >
               ← {t('sourcesBackHome')}
             </Link>
           </div>
-          <LanguageToggle variant="navy" />
+          <div className="flex-shrink-0">
+            <LanguageToggle variant="navy" />
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full space-y-6">
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full space-y-6 min-w-0">
         <section>
           <h1 className="text-2xl sm:text-3xl font-bold text-primary-navy break-words">
             {t('sourcesPageTitle')}
@@ -62,7 +64,7 @@ function SourcesContent() {
         </section>
 
         {/* Loaded Sources Section */}
-        <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 space-y-4 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-6 space-y-4 shadow-sm min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-bold text-primary-navy">
               {t('sourcesLoadedTitle')}
@@ -125,7 +127,7 @@ function SourcesContent() {
         </section>
 
         {/* Reference Data Status Table */}
-        <section className="rounded-2xl border border-border bg-card-bg p-5 sm:p-6 space-y-4 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card-bg p-4 sm:p-6 space-y-4 shadow-sm min-w-0">
           <h2 className="text-lg font-bold text-primary-navy">
             {t('sourcesStatusTitle')}
           </h2>

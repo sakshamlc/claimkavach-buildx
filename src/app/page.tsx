@@ -83,8 +83,8 @@ function ClaimKavachApp() {
     <div className="min-h-screen bg-page-bg flex flex-col overflow-x-hidden">
       {/* Anchored Deep Navy Header */}
       <header className="no-print bg-primary-navy text-white border-b border-primary-navy sticky top-0 z-20 shadow-sm">
-        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+        <div className="max-w-5xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-nowrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-white/10 text-soft-teal-tint flex-shrink-0">
               <BrandShieldIcon className="w-5 h-5" />
             </span>
@@ -100,7 +100,7 @@ function ClaimKavachApp() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <Link
               href="/sources"
-              className="min-h-[44px] inline-flex items-center px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors"
+              className="min-h-[44px] inline-flex items-center px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium text-white/90 hover:text-white hover:bg-white/10 transition-colors whitespace-nowrap"
             >
               {t('sourcesNavLink')}
             </Link>
@@ -126,7 +126,7 @@ function ClaimKavachApp() {
           />
         </div>
 
-        <div key={step} className="step-enter">
+        <div key={step} className="step-enter min-w-0">
           {step === 0 && (
             <UploadStep
               consented={consented}

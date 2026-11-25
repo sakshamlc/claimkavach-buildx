@@ -70,8 +70,13 @@ function selectPreferredVoice(
 
 export function ListenButton({ report }: ListenButtonProps) {
   const { locale, t } = useI18n();
-  const [speechState, setSpeechState] = useState<SpeechStatus>('idle');
+  const [speechSession, setSpeechSession] = useState<{
+    status: SpeechStatus;
+    locale: 'en' | 'hi';
+  }>({ status: 'idle', locale });
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const speechState: SpeechStatus =
+    speechSession.locale === locale ? speechSession.status : 'idle';
 
   const isSupported =
     typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -91,6 +96,14 @@ export function ListenButton({ report }: ListenButtonProps) {
       synth.cancel();
     };
   }, [isSupported]);
+
+  // Stop ongoing speech when switching EN <-> HI or unmounting
+  useEffect(() => {
+    if (!isSupported) return;
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, [isSupported, locale]);
 
   const preferredVoice = useMemo(
     () => selectPreferredVoice(voices, locale),
@@ -112,7 +125,7 @@ export function ListenButton({ report }: ListenButtonProps) {
     const synth = window.speechSynthesis;
     if (speechState === 'paused') {
       synth.resume();
-      setSpeechState('speaking');
+      setSpeechSession({ status: 'speaking', locale });
       return;
     }
 
@@ -124,26 +137,26 @@ export function ListenButton({ report }: ListenButtonProps) {
     if (preferredVoice) {
       utterance.voice = preferredVoice;
     }
-    utterance.onend = () => setSpeechState('idle');
-    utterance.onerror = () => setSpeechState('idle');
+    utterance.onend = () => setSpeechSession({ status: 'idle', locale });
+    utterance.onerror = () => setSpeechSession({ status: 'idle', locale });
     synth.speak(utterance);
-    setSpeechState('speaking');
+    setSpeechSession({ status: 'speaking', locale });
   }
 
   function handlePause() {
     window.speechSynthesis.pause();
-    setSpeechState('paused');
+    setSpeechSession({ status: 'paused', locale });
   }
 
   function handleStop() {
     window.speechSynthesis.cancel();
-    setSpeechState('idle');
+    setSpeechSession({ status: 'idle', locale });
   }
 
   return (
     <div className="no-print rounded-2xl border border-border bg-card-bg p-4 space-y-2.5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
           <SpeakerIcon className="w-4 h-4 text-action-teal flex-shrink-0" />
           <span className="text-sm font-semibold text-primary-navy">
             {t('listenTitle')}

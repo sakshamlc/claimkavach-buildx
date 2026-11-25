@@ -51,7 +51,7 @@ const en = {
 
   // Verify
   verifyTitle: 'Verify Extracted Line Items',
-  verifySubtitle: 'Review what was extracted from your bill. Edit any incorrect values before running the audit.',
+  verifySubtitle: 'Review the extracted items against your printed bill — check arithmetic & billing flags before final settlement.',
   syntheticDemoBanner: 'SYNTHETIC DEMO DATA — Fictional hospital and patient details for demonstration only.',
   verifyHospitalLabel: 'Hospital',
   verifyPatientLabel: 'Patient',
@@ -68,6 +68,8 @@ const en = {
   reconcileHelperMatch: 'Everything adds up — the extracted lines match the stated bill total.',
   reconcileHelperMismatch: 'The extracted lines differ from the stated bill total. Please check for a missed page, discount, tax, or typo before auditing.',
   verifyConfirmToggle: 'I checked this',
+  verifyReviewedProgress: 'items reviewed by you',
+  verifyEmptyLinesPrompt: 'Add at least one line item to run the audit.',
   verifyRunAudit: 'Run Deterministic Audit',
   verifyBackToUpload: 'Back to Upload',
   verifyAddRow: 'Add Line Item',

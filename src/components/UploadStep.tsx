@@ -131,6 +131,9 @@ export function UploadStep({
     } finally {
       setIsProcessing(false);
       setStatusMessage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   }
 
@@ -171,7 +174,7 @@ export function UploadStep({
       </section>
 
       {/* 1-Click Synthetic Demo Strip */}
-      <section className="bg-card-bg rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+      <section className="bg-card-bg rounded-2xl border border-border p-4 sm:p-6 shadow-sm">
         <div className="text-center mb-5">
           <h3 className="text-lg font-bold text-primary-navy mb-1">
             {t('demoStripTitle')}
@@ -179,7 +182,7 @@ export function UploadStep({
           <p className="text-sm text-text-muted">{t('demoStripSubtitle')}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {SYNTHETIC_DEMO_SCENARIOS.map((scenario) => {
             const accentByScenario: Record<
               typeof scenario.id,
@@ -220,15 +223,15 @@ export function UploadStep({
                       {t('syntheticBadge')}
                     </span>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-text-primary mb-1">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-primary mb-1 break-words">
                       {t(scenario.titleKey)}
                     </p>
-                    <p className="text-xs text-text-secondary leading-relaxed">
+                    <p className="text-xs text-text-secondary leading-relaxed break-words">
                       {t(scenario.descriptionKey)}
                     </p>
                   </div>
-                  <p className="text-xs font-mono tabular-nums text-text-muted bg-card-bg/80 border border-border rounded-lg px-2.5 py-1.5">
+                  <p className="text-xs font-mono tabular-nums text-text-muted bg-card-bg/80 border border-border rounded-lg px-2.5 py-1.5 break-words">
                     {previewStrip}
                   </p>
                 </div>
@@ -271,7 +274,8 @@ export function UploadStep({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           className={`
-            rounded-2xl border-2 border-dashed p-6 text-center transition-colors
+            rounded-2xl border-2 border-dashed p-4 sm:p-6 text-center transition-colors
+            focus-within:ring-2 focus-within:ring-action-teal/50
             ${
               isDragging
                 ? 'border-action-teal bg-soft-teal-tint'

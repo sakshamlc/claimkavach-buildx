@@ -1,0 +1,5 @@
+{
+  "$schema": "./review.schema.json",
+  "description": "Human-verified reference data records. Only entries here with matching SHA-256 hashes are marked verified: true.",
+  "reviews": []
+}

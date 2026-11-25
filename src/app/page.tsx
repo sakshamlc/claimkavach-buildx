@@ -1,69 +1,154 @@
-import Image from "next/image";
+'use client';
+
+/**
+ * ClaimKavach Landing Page
+ * ========================
+ * Entry point for the app. Shows:
+ * 1. Value proposition
+ * 2. Privacy notice + consent
+ * 3. Upload CTA
+ * 4. Demo bill strip (3 synthetic scenarios)
+ * 5. Educational disclaimer
+ *
+ * Mobile-first (375px safe, zero horizontal scroll).
+ * All colors from design tokens.
+ */
+
+import { useState } from 'react';
+import { I18nProvider, useI18n } from '@/lib/i18n';
+import { Stepper } from '@/components/Stepper';
+import { PrivacyDisclaimer } from '@/components/PrivacyDisclaimer';
+import { Disclaimer } from '@/components/Disclaimer';
+import { LanguageToggle } from '@/components/LanguageToggle';
+
+function LandingContent() {
+  const { t } = useI18n();
+  const [consented, setConsented] = useState(false);
+
+  return (
+    <div className="min-h-screen bg-page-bg flex flex-col">
+      {/* Header */}
+      <header className="bg-card-bg border-b border-border sticky top-0 z-10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl sm:text-2xl" aria-hidden="true">🛡️</span>
+            <div>
+              <h1 className="text-lg sm:text-xl font-bold text-primary-navy">
+                {t('appName')}
+              </h1>
+              <p className="text-xs text-text-muted hidden sm:block">
+                {t('appTagline')}
+              </p>
+            </div>
+          </div>
+          <LanguageToggle />
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 w-full">
+        {/* Stepper */}
+        <div className="mb-8">
+          <Stepper
+            currentStep={0}
+            labels={[t('stepUpload'), t('stepVerify'), t('stepReport')]}
+          />
+        </div>
+
+        {/* Hero Section */}
+        <section className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl font-bold text-primary-navy mb-3 leading-tight">
+            {t('landingTitle')}
+          </h2>
+          <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed">
+            {t('landingSubtitle')}
+          </p>
+        </section>
+
+        {/* Privacy + Upload */}
+        <section className="max-w-xl mx-auto space-y-5 mb-10">
+          <PrivacyDisclaimer
+            consented={consented}
+            onConsentChange={setConsented}
+          />
+
+          {/* Upload CTA */}
+          <button
+            disabled={!consented}
+            className={`
+              w-full py-4 px-6 rounded-xl text-base font-semibold
+              transition-all duration-200 min-h-[52px]
+              ${consented
+                ? 'bg-action-teal hover:bg-action-teal-hover text-white shadow-lg shadow-action-teal/20 cursor-pointer'
+                : 'bg-subtle-panel text-text-muted cursor-not-allowed border border-border'
+              }
+            `}
+          >
+            📄 {t('ctaUpload')}
+          </button>
+        </section>
+
+        {/* Demo Strip */}
+        <section className="bg-card-bg rounded-2xl border border-border p-5 sm:p-6 mb-8">
+          <div className="text-center mb-5">
+            <h3 className="text-lg font-bold text-primary-navy mb-1">
+              {t('demoStripTitle')}
+            </h3>
+            <p className="text-sm text-text-muted">
+              {t('demoStripSubtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { key: 'demoScenarioA' as const, icon: '🔴', scenario: 'a' },
+              { key: 'demoScenarioB' as const, icon: '🟠', scenario: 'b' },
+              { key: 'demoScenarioC' as const, icon: '🟢', scenario: 'c' },
+            ].map(({ key, icon, scenario }) => (
+              <button
+                key={scenario}
+                className="
+                  flex items-start gap-3 p-4 rounded-xl
+                  bg-subtle-panel hover:bg-soft-teal-tint
+                  border border-border hover:border-action-teal/30
+                  transition-all duration-150 text-left min-h-[44px]
+                  group cursor-pointer
+                "
+              >
+                <span className="text-lg flex-shrink-0 mt-0.5" aria-hidden="true">{icon}</span>
+                <div>
+                  <span className="inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-action-teal/10 text-action-teal rounded mb-1">
+                    {t('syntheticBadge')}
+                  </span>
+                  <p className="text-sm font-medium text-text-primary group-hover:text-action-teal transition-colors">
+                    {t(key)}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="text-center mb-8">
+          <p className="text-sm text-text-secondary italic">
+            {t('appDescription')}
+          </p>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="max-w-4xl mx-auto px-4 sm:px-6 pb-8 w-full">
+        <Disclaimer />
+      </footer>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <I18nProvider defaultLocale="en">
+      <LandingContent />
+    </I18nProvider>
   );
 }

@@ -322,3 +322,5 @@ export async function prepareBillUpload(
     totalEstimatedBytes,
   };
 }
+
+export const prepareUploadBatches = prepareBillUpload;

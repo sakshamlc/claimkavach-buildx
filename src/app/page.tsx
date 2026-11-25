@@ -1,37 +1,84 @@
 'use client';
 
 /**
- * ClaimKavach Landing Page
- * ========================
- * Entry point for the app. Shows:
- * 1. Value proposition
- * 2. Privacy notice + consent
- * 3. Upload CTA
- * 4. Demo bill strip (3 synthetic scenarios)
- * 5. Educational disclaimer
+ * ClaimKavach Main Application Shell
+ * ==================================
+ * Wires the complete 3-step client-side journey:
+ *   1. Upload / Demo Selection -> 2. Verify (Reconcile Bar) -> 3. Report
  *
- * Mobile-first (375px safe, zero horizontal scroll).
- * All colors from design tokens.
+ * Zero client-side storage (`localStorage` / `sessionStorage`) or server persistence:
+ * all bill and audit state resides solely in React state for the active session.
  */
 
 import { useState } from 'react';
-import { I18nProvider, useI18n } from '@/lib/i18n';
-import { Stepper } from '@/components/Stepper';
-import { PrivacyDisclaimer } from '@/components/PrivacyDisclaimer';
 import { Disclaimer } from '@/components/Disclaimer';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { ReportStep } from '@/components/ReportStep';
+import { Stepper } from '@/components/Stepper';
+import { UploadStep } from '@/components/UploadStep';
+import { VerifyStep } from '@/components/VerifyStep';
+import { runAudit } from '@/lib/audit';
+import { I18nProvider, useI18n } from '@/lib/i18n';
+import { DEFAULT_REFERENCE_DATASET } from '@/lib/reference/dataset';
+import type { AuditReport, NormalizedBill } from '@/lib/schemas/audit';
 
-function LandingContent() {
+type FlowStep = 0 | 1 | 2;
+
+function ClaimKavachApp() {
   const { t } = useI18n();
+  const [step, setStep] = useState<FlowStep>(0);
   const [consented, setConsented] = useState(false);
+  const [bill, setBill] = useState<NormalizedBill | null>(null);
+  const [report, setReport] = useState<AuditReport | null>(null);
+
+  function scrollToTop() {
+    if (typeof window !== 'undefined' && typeof window.scrollTo === 'function') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function handleBillReady(loadedBill: NormalizedBill) {
+    setBill(loadedBill);
+    setReport(null);
+    setStep(1);
+    scrollToTop();
+  }
+
+  function handleRunAudit(verifiedBill: NormalizedBill) {
+    const todayISO = new Date().toISOString().slice(0, 10);
+    const nextReport = runAudit(verifiedBill, DEFAULT_REFERENCE_DATASET, todayISO);
+    setBill(verifiedBill);
+    setReport(nextReport);
+    setStep(2);
+    scrollToTop();
+  }
+
+  function handleBackToVerify() {
+    setStep(1);
+    scrollToTop();
+  }
+
+  function handleBackToUpload() {
+    setStep(0);
+    scrollToTop();
+  }
+
+  function handleStartOver() {
+    setBill(null);
+    setReport(null);
+    setStep(0);
+    scrollToTop();
+  }
 
   return (
     <div className="min-h-screen bg-page-bg flex flex-col">
       {/* Header */}
-      <header className="bg-card-bg border-b border-border sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <header className="bg-card-bg border-b border-border sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-xl sm:text-2xl" aria-hidden="true">🛡️</span>
+            <span className="text-xl sm:text-2xl" aria-hidden="true">
+              🛡️
+            </span>
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-primary-navy">
                 {t('appName')}
@@ -45,100 +92,44 @@ function LandingContent() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10 w-full">
-        {/* Stepper */}
+      {/* Main Content */}
+      <main className="flex-1 max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 w-full">
         <div className="mb-8">
           <Stepper
-            currentStep={0}
+            currentStep={step}
             labels={[t('stepUpload'), t('stepVerify'), t('stepReport')]}
           />
         </div>
 
-        {/* Hero Section */}
-        <section className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-primary-navy mb-3 leading-tight">
-            {t('landingTitle')}
-          </h2>
-          <p className="text-sm sm:text-base text-text-secondary max-w-2xl mx-auto leading-relaxed">
-            {t('landingSubtitle')}
-          </p>
-        </section>
-
-        {/* Privacy + Upload */}
-        <section className="max-w-xl mx-auto space-y-5 mb-10">
-          <PrivacyDisclaimer
+        {step === 0 && (
+          <UploadStep
             consented={consented}
             onConsentChange={setConsented}
+            onBillReady={handleBillReady}
           />
+        )}
 
-          {/* Upload CTA */}
-          <button
-            disabled={!consented}
-            className={`
-              w-full py-4 px-6 rounded-xl text-base font-semibold
-              transition-all duration-200 min-h-[52px]
-              ${consented
-                ? 'bg-action-teal hover:bg-action-teal-hover text-white shadow-lg shadow-action-teal/20 cursor-pointer'
-                : 'bg-subtle-panel text-text-muted cursor-not-allowed border border-border'
-              }
-            `}
-          >
-            📄 {t('ctaUpload')}
-          </button>
-        </section>
+        {step === 1 && bill && (
+          <VerifyStep
+            bill={bill}
+            onBillChange={setBill}
+            onRunAudit={handleRunAudit}
+            onBack={handleBackToUpload}
+          />
+        )}
 
-        {/* Demo Strip */}
-        <section className="bg-card-bg rounded-2xl border border-border p-5 sm:p-6 mb-8">
-          <div className="text-center mb-5">
-            <h3 className="text-lg font-bold text-primary-navy mb-1">
-              {t('demoStripTitle')}
-            </h3>
-            <p className="text-sm text-text-muted">
-              {t('demoStripSubtitle')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { key: 'demoScenarioA' as const, icon: '🔴', scenario: 'a' },
-              { key: 'demoScenarioB' as const, icon: '🟠', scenario: 'b' },
-              { key: 'demoScenarioC' as const, icon: '🟢', scenario: 'c' },
-            ].map(({ key, icon, scenario }) => (
-              <button
-                key={scenario}
-                className="
-                  flex items-start gap-3 p-4 rounded-xl
-                  bg-subtle-panel hover:bg-soft-teal-tint
-                  border border-border hover:border-action-teal/30
-                  transition-all duration-150 text-left min-h-[44px]
-                  group cursor-pointer
-                "
-              >
-                <span className="text-lg flex-shrink-0 mt-0.5" aria-hidden="true">{icon}</span>
-                <div>
-                  <span className="inline-block px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-action-teal/10 text-action-teal rounded mb-1">
-                    {t('syntheticBadge')}
-                  </span>
-                  <p className="text-sm font-medium text-text-primary group-hover:text-action-teal transition-colors">
-                    {t(key)}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* How it works */}
-        <section className="text-center mb-8">
-          <p className="text-sm text-text-secondary italic">
-            {t('appDescription')}
-          </p>
-        </section>
+        {step === 2 && bill && report && (
+          <ReportStep
+            bill={bill}
+            report={report}
+            onBackToVerify={handleBackToVerify}
+            onStartOver={handleStartOver}
+          />
+        )}
       </main>
 
       {/* Footer */}
-      <footer className="max-w-4xl mx-auto px-4 sm:px-6 pb-8 w-full">
+      <footer className="max-w-5xl mx-auto px-4 sm:px-6 pb-8 w-full">
         <Disclaimer />
       </footer>
     </div>
@@ -148,7 +139,7 @@ function LandingContent() {
 export default function Home() {
   return (
     <I18nProvider defaultLocale="en">
-      <LandingContent />
+      <ClaimKavachApp />
     </I18nProvider>
   );
 }
